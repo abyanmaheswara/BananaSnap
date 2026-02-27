@@ -190,6 +190,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  flutter_litert:
+    dependency: "direct main"
+    description:
+      name: flutter_litert
+      sha256: "84fd97e9f343994a8505c19f436025bd0d04a8a864e02bd45c1b0a32ddc53b82"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.16"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -637,14 +645,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.9"
-  tflite_flutter:
-    dependency: "direct main"
-    description:
-      name: tflite_flutter
-      sha256: ffb8651fdb116ab0131d6dc47ff73883e0f634ad1ab12bb2852eef1bbeab4a6a
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.10.4"
   typed_data:
     dependency: transitive
     description:

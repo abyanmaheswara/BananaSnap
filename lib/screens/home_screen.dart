@@ -19,20 +19,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-
   final BananaClassifier _classifier = BananaClassifier();
-  final HistoryDatabase  _db         = HistoryDatabase();
-  final ImagePicker      _picker     = ImagePicker();
+  final HistoryDatabase _db = HistoryDatabase();
+  final ImagePicker _picker = ImagePicker();
 
-  File?             _selectedImage;
+  File? _selectedImage;
   PredictionResult? _result;
-  bool              _isLoading    = false;
-  bool              _isModelReady = false;
-  String            _statusMsg    = 'Memuat model AI...';
+  bool _isLoading = false;
+  bool _isModelReady = false;
+  String _statusMsg = 'Memuat model AI...';
 
   late AnimationController _resultAnimController;
-  late Animation<double>   _resultFadeAnim;
-  late Animation<Offset>   _resultSlideAnim;
+  late Animation<double> _resultFadeAnim;
+  late Animation<Offset> _resultSlideAnim;
 
   @override
   void initState() {
@@ -96,7 +95,6 @@ class _HomeScreenState extends State<HomeScreen>
 
       // Jalankan deteksi
       await _runDetection(File(picked.path));
-
     } catch (e) {
       _showSnackbar('Error memilih gambar: $e');
       setState(() => _isLoading = false);
@@ -117,14 +115,13 @@ class _HomeScreenState extends State<HomeScreen>
       await _db.insertDetection(result: result, imagePath: savedPath);
 
       setState(() {
-        _result    = result;
+        _result = result;
         _isLoading = false;
       });
 
       // Animasi hasil muncul
       _resultAnimController.reset();
       _resultAnimController.forward();
-
     } catch (e) {
       setState(() => _isLoading = false);
       _showSnackbar('Gagal mendeteksi: $e');
@@ -157,18 +154,22 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 20),
             Row(
               children: [
-                Expanded(
-                  child: _SourceButton(
-                    icon: Icons.camera_alt_rounded,
-                    label: 'Kamera',
-                    color: AppTheme.primary,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _pickImage(ImageSource.camera);
-                    },
+                if (!Platform.isWindows &&
+                    !Platform.isLinux &&
+                    !Platform.isMacOS) ...[
+                  Expanded(
+                    child: _SourceButton(
+                      icon: Icons.camera_alt_rounded,
+                      label: 'Kamera',
+                      color: AppTheme.primary,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _pickImage(ImageSource.camera);
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
+                  const SizedBox(width: 16),
+                ],
                 Expanded(
                   child: _SourceButton(
                     icon: Icons.photo_library_rounded,
@@ -208,12 +209,12 @@ class _HomeScreenState extends State<HomeScreen>
               floating: true,
               backgroundColor: AppTheme.bgLight,
               elevation: 0,
-              title: Row(
+              title: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('🍌', style: TextStyle(fontSize: 24)),
-                  const SizedBox(width: 8),
-                  const Text(
+                  Text('🍌', style: TextStyle(fontSize: 24)),
+                  SizedBox(width: 8),
+                  Text(
                     'BanaSnap',
                     style: TextStyle(
                       fontSize: 20,
@@ -225,7 +226,8 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.history_rounded, color: AppTheme.textDark),
+                  icon: const Icon(Icons.history_rounded,
+                      color: AppTheme.textDark),
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const HistoryScreen()),
@@ -238,14 +240,14 @@ class _HomeScreenState extends State<HomeScreen>
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-
                   // Status model
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
                       color: _isModelReady
-                          ? AppTheme.fresh.withOpacity(0.1)
-                          : Colors.orange.withOpacity(0.1),
+                          ? AppTheme.fresh.withValues(alpha: 0.1)
+                          : Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -262,7 +264,8 @@ class _HomeScreenState extends State<HomeScreen>
                           _statusMsg,
                           style: TextStyle(
                             fontSize: 13,
-                            color: _isModelReady ? AppTheme.fresh : Colors.orange,
+                            color:
+                                _isModelReady ? AppTheme.fresh : Colors.orange,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -289,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 20,
                             offset: const Offset(0, 4),
                           ),
@@ -342,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen>
                   const SizedBox(height: 20),
 
                   // Tips
-                  _TipsCard(),
+                  const _TipsCard(),
 
                   const SizedBox(height: 32),
                 ]),
@@ -358,11 +361,11 @@ class _HomeScreenState extends State<HomeScreen>
     if (_isLoading) {
       return Container(
         color: Colors.grey.shade50,
-        child: Column(
+        child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(color: AppTheme.primary),
-            const SizedBox(height: 16),
+            CircularProgressIndicator(color: AppTheme.primary),
+            SizedBox(height: 16),
             Text(
               'Menganalisa gambar...',
               style: TextStyle(color: AppTheme.textGrey, fontSize: 14),
@@ -379,32 +382,37 @@ class _HomeScreenState extends State<HomeScreen>
           Image.file(_selectedImage!, fit: BoxFit.cover),
           // Overlay gradien di bawah
           Positioned(
-            bottom: 0, left: 0, right: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
             child: Container(
               height: 60,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.4), Colors.transparent],
+                  colors: [Colors.black.withValues(alpha: 0.4), Colors.transparent],
                 ),
               ),
             ),
           ),
           Positioned(
-            bottom: 12, right: 12,
+            bottom: 12,
+            right: 12,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.touch_app_rounded, size: 14, color: AppTheme.textGrey),
+                  Icon(Icons.touch_app_rounded,
+                      size: 14, color: AppTheme.textGrey),
                   SizedBox(width: 4),
-                  Text('Tap untuk ganti', style: TextStyle(fontSize: 12, color: AppTheme.textGrey)),
+                  Text('Tap untuk ganti',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textGrey)),
                 ],
               ),
             ),
@@ -417,22 +425,26 @@ class _HomeScreenState extends State<HomeScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 80, height: 80,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            color: AppTheme.primary.withOpacity(0.1),
+            color: AppTheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24),
           ),
-          child: const Center(child: Text('🍌', style: TextStyle(fontSize: 40))),
+          child:
+              const Center(child: Text('🍌', style: TextStyle(fontSize: 40))),
         ),
         const SizedBox(height: 16),
         const Text(
           'Tap untuk pilih gambar pisang',
           style: TextStyle(
-            fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textDark,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textDark,
           ),
         ),
         const SizedBox(height: 6),
-        Text(
+        const Text(
           'Dari kamera atau galeri',
           style: TextStyle(fontSize: 13, color: AppTheme.textGrey),
         ),
@@ -447,8 +459,8 @@ class _HomeScreenState extends State<HomeScreen>
 
 class _SourceButton extends StatelessWidget {
   final IconData icon;
-  final String   label;
-  final Color    color;
+  final String label;
+  final Color color;
   final VoidCallback onTap;
 
   const _SourceButton({
@@ -465,15 +477,16 @@ class _SourceButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.12),
+          color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
             Icon(icon, color: color, size: 36),
             const SizedBox(height: 8),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+            Text(label,
+                style: TextStyle(color: color, fontWeight: FontWeight.w700)),
           ],
         ),
       ),
@@ -492,18 +505,22 @@ class _LoadingCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const SizedBox(
-            width: 32, height: 32,
-            child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 3),
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(
+                color: AppTheme.primary, strokeWidth: 3),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Menganalisa...', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-              Text('Model AI sedang bekerja', style: TextStyle(color: AppTheme.textGrey, fontSize: 13)),
+              Text('Menganalisa...',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+              Text('Model AI sedang bekerja',
+                  style: TextStyle(color: AppTheme.textGrey, fontSize: 13)),
             ],
           ),
         ],
@@ -527,9 +544,9 @@ class _TipsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.primary.withOpacity(0.08),
+        color: AppTheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.2)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -540,15 +557,17 @@ class _TipsCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ..._tips.map((tip) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              children: [
-                Text(tip['icon']!, style: const TextStyle(fontSize: 16)),
-                const SizedBox(width: 10),
-                Text(tip['text']!, style: const TextStyle(fontSize: 13, color: AppTheme.textDark)),
-              ],
-            ),
-          )),
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Text(tip['icon']!, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(width: 10),
+                    Text(tip['text']!,
+                        style: const TextStyle(
+                            fontSize: 13, color: AppTheme.textDark)),
+                  ],
+                ),
+              )),
         ],
       ),
     );

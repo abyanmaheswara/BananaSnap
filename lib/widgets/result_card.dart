@@ -12,18 +12,18 @@ class ResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = result.isFresh ? AppTheme.fresh : AppTheme.rotten;
     final bgColor = result.isFresh
-        ? AppTheme.fresh.withOpacity(0.08)
-        : AppTheme.rotten.withOpacity(0.08);
+        ? AppTheme.fresh.withValues(alpha: 0.08)
+        : AppTheme.rotten.withValues(alpha: 0.08);
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -61,7 +61,7 @@ class ResultCard extends StatelessWidget {
                           : 'Pisang sudah tidak segar',
                       style: TextStyle(
                         fontSize: 13,
-                        color: color.withOpacity(0.8),
+                        color: color.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -112,11 +112,11 @@ class ResultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textGrey),
+              const Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textGrey),
               const SizedBox(width: 4),
               Text(
                 _formatTime(result.timestamp),
-                style: TextStyle(fontSize: 12, color: AppTheme.textGrey),
+                style: const TextStyle(fontSize: 12, color: AppTheme.textGrey),
               ),
             ],
           ),

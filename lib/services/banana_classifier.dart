@@ -1,14 +1,14 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:flutter_litert/flutter_litert.dart';
 
 /// Hasil prediksi dari model
 class PredictionResult {
-  final String label;        // "LAYAK" atau "TIDAK_LAYAK"
-  final double confidence;   // 0.0 - 1.0
-  final bool isFresh;        // true jika layak
+  final String label; // "LAYAK" atau "TIDAK_LAYAK"
+  final double confidence; // 0.0 - 1.0
+  final bool isFresh; // true jika layak
   final DateTime timestamp;
 
   PredictionResult({
@@ -27,14 +27,14 @@ class PredictionResult {
 
 /// Service untuk menjalankan model TFLite
 class BananaClassifier {
-  static const String _modelPath  = 'assets/model/banana_model.tflite';
+  static const String _modelPath = 'assets/model/banana_model.tflite';
   static const String _labelsPath = 'assets/model/labels.txt';
-  static const int    _inputSize  = 224; // MobileNetV2 input size
-  static const int    _numClasses = 2;
+  static const int _inputSize = 224; // MobileNetV2 input size
+  static const int _numClasses = 2;
 
   Interpreter? _interpreter;
-  List<String>  _labels = [];
-  bool          _isLoaded = false;
+  List<String> _labels = [];
+  bool _isLoaded = false;
 
   bool get isLoaded => _isLoaded;
 
@@ -43,7 +43,7 @@ class BananaClassifier {
     try {
       // Load TFLite model
       final interpreterOptions = InterpreterOptions()
-        ..threads = 4;  // Gunakan 4 thread untuk inferensi lebih cepat
+        ..threads = 4; // Gunakan 4 thread untuk inferensi lebih cepat
 
       _interpreter = await Interpreter.fromAsset(
         _modelPath,
@@ -59,9 +59,9 @@ class BananaClassifier {
           .toList();
 
       _isLoaded = true;
-      print('[Classifier] Model berhasil dimuat! Labels: $_labels');
+      debugPrint('[Classifier] Model berhasil dimuat! Labels: $_labels');
     } catch (e) {
-      print('[Classifier] ERROR load model: $e');
+      debugPrint('[Classifier] ERROR load model: $e');
       rethrow;
     }
   }
@@ -69,7 +69,8 @@ class BananaClassifier {
   /// Prediksi gambar pisang dari File
   Future<PredictionResult> predict(File imageFile) async {
     if (!_isLoaded || _interpreter == null) {
-      throw Exception('Model belum dimuat! Panggil loadModel() terlebih dahulu.');
+      throw Exception(
+          'Model belum dimuat! Panggil loadModel() terlebih dahulu.');
     }
 
     // 1. Baca dan preprocess gambar
@@ -88,8 +89,8 @@ class BananaClassifier {
     final confidence = scores[maxIndex];
     final label = maxIndex < _labels.length ? _labels[maxIndex] : 'UNKNOWN';
     final isFresh = label.toUpperCase().contains('FRESH') ||
-                    label.toUpperCase().contains('LAYAK') &&
-                    !label.toUpperCase().contains('TIDAK');
+        label.toUpperCase().contains('LAYAK') &&
+            !label.toUpperCase().contains('TIDAK');
 
     return PredictionResult(
       label: isFresh ? 'LAYAK' : 'TIDAK_LAYAK',

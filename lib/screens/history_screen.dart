@@ -87,14 +87,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildEmpty() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('📭', style: TextStyle(fontSize: 64)),
-          const SizedBox(height: 16),
-          const Text('Belum ada riwayat', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
+          Text('📭', style: TextStyle(fontSize: 64)),
+          SizedBox(height: 16),
+          Text('Belum ada riwayat', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          SizedBox(height: 8),
           Text('Mulai deteksi pisang untuk melihat riwayat',
               style: TextStyle(color: AppTheme.textGrey, fontSize: 14)),
         ],
@@ -134,7 +134,7 @@ class _HistoryItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -177,7 +177,7 @@ class _HistoryItem extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     timeStr,
-                    style: TextStyle(fontSize: 12, color: AppTheme.textGrey.withOpacity(0.7)),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textGrey.withValues(alpha: 0.7)),
                   ),
                 ],
               ),

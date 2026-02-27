@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen>
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(32),
                   ),
                   child: const Center(
@@ -85,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
                   'Snap, detect, done! 🍌',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -94,7 +94,7 @@ class _SplashScreenState extends State<SplashScreen>
                   width: 32,
                   height: 32,
                   child: CircularProgressIndicator(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     strokeWidth: 3,
                   ),
                 ),

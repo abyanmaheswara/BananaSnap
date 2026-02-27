@@ -15,7 +15,7 @@ dependencies:
   image_picker: ^1.0.7
 
   # TFLite untuk model AI on-device
-  tflite_flutter: ^0.10.4
+  flutter_litert: ^0.1.7
 
   # Pemrosesan gambar
   image: ^4.1.7
