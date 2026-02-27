@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 
@@ -34,6 +35,7 @@ class BanaSnapApp extends StatelessWidget {
 }
 
 class AppTheme {
+  // CSS Var Colors from HTML
   static const Color yellow = Color(0xFFFFD93D);
   static const Color yellowDark = Color(0xFFF5A623);
   static const Color green = Color(0xFF6BCB77);
@@ -54,18 +56,20 @@ class AppTheme {
 
   static ThemeData get theme => ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: bgCream,
+        scaffoldBackgroundColor:
+            const Color(0xFFF0F0F0), // Sesuai body background HTML
         colorScheme: ColorScheme.fromSeed(seedColor: yellow),
-        appBarTheme: const AppBarTheme(
+        textTheme: GoogleFonts.nunitoTextTheme(),
+        appBarTheme: AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
-          titleTextStyle: TextStyle(
+          titleTextStyle: GoogleFonts.fredoka(
             color: textDark,
             fontSize: 22,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w400,
           ),
-          iconTheme: IconThemeData(color: textDark),
+          iconTheme: const IconThemeData(color: textDark),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -76,7 +80,7 @@ class AppTheme {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             textStyle:
-                const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800),
           ),
         ),
         cardTheme: const CardThemeData(

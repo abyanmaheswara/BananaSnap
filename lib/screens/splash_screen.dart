@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -9,19 +10,20 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-
   late AnimationController _logoCtrl;
   late AnimationController _textCtrl;
-  late Animation<double>   _scaleAnim;
-  late Animation<double>   _fadeAnim;
-  late Animation<Offset>   _slideAnim;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
 
   @override
   void initState() {
     super.initState();
 
-    _logoCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _textCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _logoCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900));
+    _textCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
 
     _scaleAnim = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _logoCtrl, curve: Curves.elasticOut),
@@ -31,7 +33,8 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _textCtrl, curve: Curves.easeOut),
     );
 
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
+    _slideAnim =
+        Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
       CurvedAnimation(parent: _textCtrl, curve: Curves.easeOut),
     );
 
@@ -54,43 +57,42 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
+          // background: linear-gradient(160deg, var(--yellow) 0%, var(--yellow-dark) 60%, #F59B1A 100%);
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFFE566), AppTheme.yellowDark, Color(0xFFF59B1A)],
+            stops: [0.0, 0.6, 1.0],
+            colors: [AppTheme.yellow, AppTheme.yellowDark, Color(0xFFF59B1A)],
           ),
         ),
         child: Stack(
           children: [
-            // Dekorasi lingkaran belakang
-            Positioned(top: -80, right: -80,
+            // .splash::before
+            Positioned(
+              top: -80,
+              right: -80,
               child: Container(
-                width: 280, height: 280,
+                width: 300,
+                height: 300,
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
               ),
             ),
-            Positioned(bottom: -60, left: -60,
+            // .splash::after
+            Positioned(
+              bottom: -40,
+              left: -40,
               child: Container(
-                width: 220, height: 220,
+                width: 200,
+                height: 200,
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
               ),
             ),
-            Positioned(top: 120, left: -40,
-              child: Container(
-                width: 120, height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-
             // Konten utama
             Center(
               child: Column(
@@ -100,24 +102,26 @@ class _SplashScreenState extends State<SplashScreen>
                   ScaleTransition(
                     scale: _scaleAnim,
                     child: Container(
-                      width: 120, height: 120,
+                      width: 110,
+                      height: 110,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(36),
+                        borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.18),
-                            blurRadius: 40, offset: const Offset(0, 12),
+                            blurRadius: 40,
+                            offset: const Offset(0, 12),
                           ),
                         ],
                       ),
                       child: const Center(
-                        child: Text('🍌', style: TextStyle(fontSize: 60)),
+                        child: Text('🍌', style: TextStyle(fontSize: 56)),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 20),
 
                   // Teks
                   FadeTransition(
@@ -126,40 +130,40 @@ class _SplashScreenState extends State<SplashScreen>
                       position: _slideAnim,
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             'BanaSnap',
-                            style: TextStyle(
-                              fontSize: 42,
-                              fontWeight: FontWeight.w900,
+                            style: GoogleFonts.fredoka(
+                              fontSize: 36,
                               color: Colors.white,
                               letterSpacing: 1,
-                              shadows: [
-                                Shadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3)),
+                              shadows: const [
+                                Shadow(
+                                    color: Color(0x26000000),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2)),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: const Text(
-                              'Snap, detect, done! 🍌',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Snap, detect, done! 🍌',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 60),
+                          const SizedBox(height: 48),
                           // Loading dots
-                          Row(
+                          const Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: List.generate(3, (i) => _Dot(delay: i * 200)),
+                            children: [
+                              _Dot(delay: 0),
+                              SizedBox(width: 8),
+                              _Dot(delay: 200),
+                              SizedBox(width: 8),
+                              _Dot(delay: 400),
+                            ],
                           ),
                         ],
                       ),
@@ -189,7 +193,8 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
     _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
     );
@@ -199,7 +204,10 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,8 +216,10 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
       child: FadeTransition(
         opacity: _anim,
         child: Container(
-          width: 10, height: 10,
-          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+          width: 10,
+          height: 10,
+          decoration:
+              const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
         ),
       ),
     );

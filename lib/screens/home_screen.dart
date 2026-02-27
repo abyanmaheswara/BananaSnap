@@ -9,6 +9,7 @@ import '../services/history_database.dart';
 import '../widgets/result_card.dart';
 import '../widgets/stats_widget.dart';
 import 'history_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -204,43 +205,46 @@ class _HomeScreenState extends State<HomeScreen>
           colors: [AppTheme.yellow, AppTheme.yellowDark],
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-              color: Color(0x30F5A623), blurRadius: 20, offset: Offset(0, 8))
-        ],
+        // Menghapus drop shadow header per desain rujukan web HTML
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20,
+              40), // inner padding di bottom ditambah jadi 40 (ruang untuk stats overlapping)
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8)
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4))
                       ],
                     ),
                     child: const Center(
-                        child: Text('🍌', style: TextStyle(fontSize: 24))),
+                        child: Text('🍌', style: TextStyle(fontSize: 22))),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'BanaSnap',
-                    style: TextStyle(
+                    style: GoogleFonts.fredoka(
                       fontSize: 22,
-                      fontWeight: FontWeight.w900,
                       color: Colors.white,
-                      shadows: [Shadow(color: Colors.black26, blurRadius: 4)],
+                      shadows: [
+                        const Shadow(
+                            color: Color(0x1A000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 2))
+                      ],
                     ),
                   ),
                   const Spacer(),
@@ -268,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen>
                         const SizedBox(width: 5),
                         Text(
                           _isModelReady ? 'AI Ready' : 'Loading...',
-                          style: const TextStyle(
+                          style: GoogleFonts.nunito(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -279,23 +283,21 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              const Text(
+              const SizedBox(height: 16),
+              Text(
                 'Cek Pisangmu! 🍌',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
-                  shadows: [Shadow(color: Colors.black26, blurRadius: 4)],
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 'Foto pisang → deteksi dalam 1 detik',
-                style: TextStyle(
+                style: GoogleFonts.nunito(
                   fontSize: 13,
                   color: Colors.white.withValues(alpha: 0.85),
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -308,111 +310,124 @@ class _HomeScreenState extends State<HomeScreen>
   // ── Home Tab ──
   Widget _buildHomeTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
-
-          // Stats
-          StatsWidget(db: _db),
-
-          const SizedBox(height: 20),
-
-          // Section title
-          const Text('📸 Deteksi Sekarang',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.textDark)),
-          const SizedBox(height: 12),
-
-          // Image area
-          GestureDetector(
-            onTap: _showSourceSheet,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              constraints: const BoxConstraints(minHeight: 180),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: _selectedImage != null
-                      ? AppTheme.yellowDark
-                      : const Color(0xFFFFD93D),
-                  width: 2.5,
-                  strokeAlign: BorderSide.strokeAlignOutside,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6))
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: _buildImageArea(),
+          // Stats (ditarik ke atas agar nabrak ke header per HTML design)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Transform.translate(
+              offset: const Offset(0, -24), // overlap -24px margin in HTML
+              child: StatsWidget(
+                key: ValueKey(_result?.timestamp.millisecondsSinceEpoch ?? 0),
+                db: _db,
               ),
             ),
           ),
 
-          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section title
+                Text('📸 Deteksi Sekarang',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textDark,
+                    )),
+                const SizedBox(height: 12),
 
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                  child: _ActionBtn(
-                emoji: '📷',
-                label: 'Kamera',
-                color: AppTheme.yellow,
-                shadow: const Color(0x40F5A623),
-                onTap: () => _pickImage(ImageSource.camera),
-              )),
-              const SizedBox(width: 12),
-              Expanded(
-                  child: _ActionBtn(
-                emoji: '🖼️',
-                label: 'Galeri',
-                color: AppTheme.green,
-                shadow: const Color(0x406BCB77),
-                textColor: Colors.white,
-                onTap: () => _pickImage(ImageSource.gallery),
-              )),
-            ],
-          ),
+                // Image area
+                GestureDetector(
+                  onTap: _showSourceSheet,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    constraints: const BoxConstraints(minHeight: 180),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: _selectedImage != null
+                            ? AppTheme.yellowDark
+                            : AppTheme.yellow,
+                        width: 2.5,
+                        strokeAlign: BorderSide.strokeAlignOutside,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6))
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: _buildImageArea(),
+                    ),
+                  ),
+                ),
 
-          const SizedBox(height: 20),
+                const SizedBox(height: 14),
 
-          // Result
-          if (_isLoading)
-            _buildLoadingCard()
-          else if (_result != null)
-            FadeTransition(
-              opacity: _resultFade,
-              child: SlideTransition(
-                position: _resultSlide,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Action buttons
+                Row(
                   children: [
-                    const Text('✅ Hasil Deteksi',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.textDark)),
-                    const SizedBox(height: 12),
-                    ResultCard(result: _result!),
+                    Expanded(
+                        child: _ActionBtn(
+                      emoji: '📷',
+                      label: 'Kamera',
+                      color: AppTheme.yellow,
+                      shadow: const Color(0x40F5A623),
+                      onTap: () => _pickImage(ImageSource.camera),
+                    )),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: _ActionBtn(
+                      emoji: '🖼️',
+                      label: 'Galeri',
+                      color: AppTheme.green,
+                      shadow: const Color(0x406BCB77),
+                      textColor: Colors.white,
+                      onTap: () => _pickImage(ImageSource.gallery),
+                    )),
                   ],
                 ),
-              ),
+
+                const SizedBox(height: 20),
+
+                // Result
+                if (_isLoading)
+                  _buildLoadingCard()
+                else if (_result != null)
+                  FadeTransition(
+                    opacity: _resultFade,
+                    child: SlideTransition(
+                      position: _resultSlide,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('✅ Hasil Deteksi',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textDark)),
+                          const SizedBox(height: 12),
+                          ResultCard(result: _result!),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 20),
+
+                // Tips
+                _buildTipsCard(),
+                const SizedBox(height: 24),
+              ],
             ),
-
-          const SizedBox(height: 20),
-
-          // Tips
-          _buildTipsCard(),
-          const SizedBox(height: 24),
+          ),
         ],
       ),
     );
