@@ -5,32 +5,25 @@ import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Lock orientasi ke portrait
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
-
-  // Status bar transparan
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-
-  runApp(const BananaFreshnessApp());
+  runApp(const BanaSnapApp());
 }
 
-class BananaFreshnessApp extends StatelessWidget {
-  const BananaFreshnessApp({super.key});
+class BanaSnapApp extends StatelessWidget {
+  const BanaSnapApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BanaSnap',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.premiumTheme,
+      theme: AppTheme.theme,
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
@@ -41,68 +34,56 @@ class BananaFreshnessApp extends StatelessWidget {
 }
 
 class AppTheme {
-  // Palet Warna Premium (Dark & Neon)
-  static const Color primary = Color(0xFFFFD54F); // Neon Banana Yellow
-  static const Color primaryDark = Color(0xFFFBC02D);
-  static const Color fresh = Color(0xFF00E676); // Neon Green (Layak)
-  static const Color rotten = Color(0xFFFF5252); // Neon Red (Tidak Layak)
+  static const Color yellow = Color(0xFFFFD93D);
+  static const Color yellowDark = Color(0xFFF5A623);
+  static const Color green = Color(0xFF6BCB77);
+  static const Color greenDark = Color(0xFF4CAF61);
+  static const Color red = Color(0xFFFF6B6B);
+  static const Color redDark = Color(0xFFFF4757);
+  static const Color bgCream = Color(0xFFFFF8E1);
+  static const Color cardWhite = Color(0xFFFFFFFF);
+  static const Color textDark = Color(0xFF1E1E1E);
+  static const Color textGrey = Color(0xFF888888);
 
-  // Backgrounds
-  static const Color bgDark = Color(0xFF121212); // Deep Space Black
-  static const Color surface = Color(0xFF1E1E1E); // Elevated Dark
-  static const Color cardBg = Color(0xFF242424);
+  // Alias untuk backward compat
+  static const Color primary = yellow;
+  static const Color primaryDark = yellowDark;
+  static const Color fresh = green;
+  static const Color rotten = red;
+  static const Color bgLight = bgCream;
 
-  // Texts
-  static const Color textLight = Color(0xFFFFFFFF);
-  static const Color textGrey = Color(0xFFAAAAAA);
-
-  static ThemeData get premiumTheme => ThemeData(
+  static ThemeData get theme => ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primary,
-          brightness: Brightness.dark,
-          surface: bgDark,
-          primary: primary,
-          secondary: fresh,
-        ),
-        scaffoldBackgroundColor: bgDark,
-        fontFamily: 'Inter', // Modern font if available, fallback to default
+        scaffoldBackgroundColor: bgCream,
+        colorScheme: ColorScheme.fromSeed(seedColor: yellow),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
           titleTextStyle: TextStyle(
-            color: textLight,
+            color: textDark,
             fontSize: 22,
             fontWeight: FontWeight.w800,
-            letterSpacing: 1.0,
           ),
-          iconTheme: IconThemeData(color: primary),
+          iconTheme: IconThemeData(color: textDark),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: bgDark,
-            elevation: 8,
-            shadowColor: primary.withValues(alpha: 0.4),
+            backgroundColor: yellow,
+            foregroundColor: textDark,
+            elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-            ),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            textStyle:
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
         ),
         cardTheme: const CardThemeData(
-          color: cardBg,
-          elevation: 8,
-          shadowColor: Colors.black54,
+          color: cardWhite,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(24)),
-          ),
+              borderRadius: BorderRadius.all(Radius.circular(24))),
         ),
       );
 }

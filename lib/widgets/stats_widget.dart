@@ -4,9 +4,7 @@ import '../services/history_database.dart';
 
 class StatsWidget extends StatefulWidget {
   final HistoryDatabase db;
-
   const StatsWidget({super.key, required this.db});
-
   @override
   State<StatsWidget> createState() => _StatsWidgetState();
 }
@@ -17,63 +15,73 @@ class _StatsWidgetState extends State<StatsWidget> {
   @override
   void initState() {
     super.initState();
-    _loadStats();
+    _load();
   }
 
-  Future<void> _loadStats() async {
-    final stats = await widget.db.getStats();
-    if (mounted) setState(() => _stats = stats);
+  Future<void> _load() async {
+    final s = await widget.db.getStats();
+    if (mounted) setState(() => _stats = s);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        const Text(
-          'Statistik Deteksi',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textLight),
+        _StatCard(
+          value: '${_stats['total']}',
+          label: 'TOTAL',
+          emoji: '🍌',
+          color: AppTheme.yellowDark,
+          bg: const Color(0xFFFFF3CC),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _StatBox(value: '${_stats['total']}', label: 'Total', color: AppTheme.primary),
-            const SizedBox(width: 12),
-            _StatBox(value: '${_stats['fresh']}',  label: 'Layak',       color: AppTheme.fresh),
-            const SizedBox(width: 12),
-            _StatBox(value: '${_stats['rotten']}', label: 'Tidak Layak', color: AppTheme.rotten),
-          ],
+        const SizedBox(width: 10),
+        _StatCard(
+          value: '${_stats['fresh']}',
+          label: 'LAYAK',
+          emoji: '✅',
+          color: AppTheme.greenDark,
+          bg: const Color(0xFFE8F8EA),
+        ),
+        const SizedBox(width: 10),
+        _StatCard(
+          value: '${_stats['rotten']}',
+          label: 'TDK LAYAK',
+          emoji: '❌',
+          color: AppTheme.redDark,
+          bg: const Color(0xFFFFEEEE),
         ),
       ],
     );
   }
 }
 
-class _StatBox extends StatelessWidget {
-  final String value;
-  final String label;
-  final Color  color;
-
-  const _StatBox({required this.value, required this.label, required this.color});
+class _StatCard extends StatelessWidget {
+  final String value, label, emoji;
+  final Color color, bg;
+  const _StatCard({
+    required this.value, required this.label,
+    required this.emoji, required this.color, required this.bg,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          color: bg,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 12, offset: const Offset(0, 4))],
         ),
         child: Column(
           children: [
-            Text(
-              value,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color),
-            ),
+            Text(emoji, style: const TextStyle(fontSize: 20)),
+            const SizedBox(height: 4),
+            Text(value,
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: color)),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.textGrey)),
+            Text(label,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textGrey)),
           ],
         ),
       ),

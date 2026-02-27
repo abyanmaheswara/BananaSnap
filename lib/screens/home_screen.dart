@@ -12,91 +12,61 @@ import 'history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+
   final BananaClassifier _classifier = BananaClassifier();
-  final HistoryDatabase _db = HistoryDatabase();
-  final ImagePicker _picker = ImagePicker();
+  final HistoryDatabase  _db         = HistoryDatabase();
+  final ImagePicker      _picker     = ImagePicker();
 
-  File? _selectedImage;
+  int _currentTab = 0;
+
+  File?             _selectedImage;
   PredictionResult? _result;
-  bool _isLoading = false;
-  bool _isModelReady = false;
-  String _statusMsg = 'Memuat model AI...';
+  bool              _isLoading    = false;
+  bool              _isModelReady = false;
 
-  late AnimationController _resultAnimController;
-  late Animation<double> _resultFadeAnim;
-  late Animation<Offset> _resultSlideAnim;
+  late AnimationController _resultCtrl;
+  late Animation<double>   _resultFade;
+  late Animation<Offset>   _resultSlide;
 
   @override
   void initState() {
     super.initState();
-
-    _resultAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
+    _resultCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _resultFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _resultCtrl, curve: Curves.easeOut),
     );
-
-    _resultFadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _resultAnimController, curve: Curves.easeOut),
+    _resultSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(parent: _resultCtrl, curve: Curves.easeOutCubic),
     );
-
-    _resultSlideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _resultAnimController,
-      curve: Curves.easeOutCubic,
-    ));
-
     _loadModel();
   }
 
   Future<void> _loadModel() async {
     try {
       await _classifier.loadModel();
-      setState(() {
-        _isModelReady = true;
-        _statusMsg = 'Model siap! Pilih gambar pisang.';
-      });
-    } catch (e) {
-      setState(() {
-        _statusMsg = 'Gagal load model: $e';
-      });
-    }
+      if (mounted) setState(() => _isModelReady = true);
+    } catch (_) {}
   }
 
   Future<void> _pickImage(ImageSource source) async {
     if (!_isModelReady) {
-      _showSnackbar('Model belum siap, harap tunggu...');
+      _snack('Model belum siap, harap tunggu...');
       return;
     }
-
     try {
       final XFile? picked = await _picker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 90,
+        source: source, maxWidth: 1024, maxHeight: 1024, imageQuality: 90,
       );
-
       if (picked == null) return;
-
-      setState(() {
-        _selectedImage = File(picked.path);
-        _result = null;
-        _isLoading = true;
-      });
-
-      // Jalankan deteksi
+      setState(() { _selectedImage = File(picked.path); _result = null; _isLoading = true; });
       await _runDetection(File(picked.path));
     } catch (e) {
-      _showSnackbar('Error memilih gambar: $e');
+      _snack('Error: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -104,86 +74,68 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _runDetection(File imageFile) async {
     try {
       final result = await _classifier.predict(imageFile);
-
-      // Simpan gambar ke direktori app
-      final appDir = await getApplicationDocumentsDirectory();
-      final fileName = 'banana_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final savedPath = p.join(appDir.path, fileName);
-      await imageFile.copy(savedPath);
-
-      // Simpan ke database
-      await _db.insertDetection(result: result, imagePath: savedPath);
-
-      setState(() {
-        _result = result;
-        _isLoading = false;
-      });
-
-      // Animasi hasil muncul
-      _resultAnimController.reset();
-      _resultAnimController.forward();
+      final appDir  = await getApplicationDocumentsDirectory();
+      final saved   = p.join(appDir.path, 'banana_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await imageFile.copy(saved);
+      await _db.insertDetection(result: result, imagePath: saved);
+      setState(() { _result = result; _isLoading = false; });
+      _resultCtrl.reset();
+      _resultCtrl.forward();
     } catch (e) {
       setState(() => _isLoading = false);
-      _showSnackbar('Gagal mendeteksi: $e');
+      _snack('Gagal mendeteksi: $e');
     }
   }
 
-  void _showSnackbar(String msg) {
+  void _snack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
     );
   }
 
-  void _showImageSourceDialog() {
+  void _showSourceSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Pilih Sumber Gambar',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
+            const SizedBox(height: 20),
+            const Text('Pilih Sumber Gambar',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
             const SizedBox(height: 20),
             Row(
               children: [
-                if (!Platform.isWindows &&
-                    !Platform.isLinux &&
-                    !Platform.isMacOS) ...[
-                  Expanded(
-                    child: _SourceButton(
-                      icon: Icons.camera_alt_rounded,
-                      label: 'Kamera',
-                      color: AppTheme.primary,
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _pickImage(ImageSource.camera);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                ],
-                Expanded(
-                  child: _SourceButton(
-                    icon: Icons.photo_library_rounded,
-                    label: 'Galeri',
-                    color: AppTheme.primaryDark,
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _pickImage(ImageSource.gallery);
-                    },
-                  ),
-                ),
+                Expanded(child: _SheetBtn(
+                  emoji: '📷', label: 'Kamera',
+                  color: AppTheme.yellow,
+                  onTap: () { Navigator.pop(context); _pickImage(ImageSource.camera); },
+                )),
+                const SizedBox(width: 14),
+                Expanded(child: _SheetBtn(
+                  emoji: '🖼️', label: 'Galeri',
+                  color: AppTheme.green,
+                  textColor: Colors.white,
+                  onTap: () { Navigator.pop(context); _pickImage(ImageSource.gallery); },
+                )),
               ],
             ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -193,170 +145,209 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _classifier.dispose();
-    _resultAnimController.dispose();
+    _resultCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgDark,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // App Bar
-            SliverAppBar(
-              floating: true,
-              backgroundColor: AppTheme.bgDark,
-              elevation: 0,
-              title: const Row(
-                mainAxisSize: MainAxisSize.min,
+      backgroundColor: AppTheme.bgCream,
+      body: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: _currentTab == 0
+                ? _buildHomeTab()
+                : const HistoryScreen(embedded: true),
+          ),
+          _buildBottomNav(),
+        ],
+      ),
+    );
+  }
+
+  // ── Header ──
+  Widget _buildHeader() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.yellow, AppTheme.yellowDark],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+        boxShadow: [BoxShadow(color: Color(0x30F5A623), blurRadius: 20, offset: Offset(0, 8))],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text('🍌', style: TextStyle(fontSize: 24)),
-                  SizedBox(width: 8),
-                  Text(
-                    'BanaSnap',
+                  Container(
+                    width: 42, height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8)],
+                    ),
+                    child: const Center(child: Text('🍌', style: TextStyle(fontSize: 24))),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('BanaSnap',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textLight,
+                      fontSize: 22, fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      shadows: [Shadow(color: Colors.black26, blurRadius: 4)],
                     ),
                   ),
-                ],
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.history_rounded,
-                      color: AppTheme.textLight),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HistoryScreen()),
-                  ),
-                ),
-              ],
-            ),
-
-            SliverPadding(
-              padding: const EdgeInsets.all(20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  // Status model
+                  const Spacer(),
+                  // Model status indicator
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: _isModelReady
-                          ? AppTheme.fresh.withValues(alpha: 0.1)
-                          : Colors.orange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                          ? Colors.white.withValues(alpha: 0.3)
+                          : Colors.orange.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          _isModelReady
-                              ? Icons.check_circle_rounded
-                              : Icons.hourglass_empty_rounded,
-                          color: _isModelReady ? AppTheme.fresh : Colors.orange,
-                          size: 18,
+                        Container(
+                          width: 7, height: 7,
+                          decoration: BoxDecoration(
+                            color: _isModelReady ? Colors.white : Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 5),
                         Text(
-                          _statusMsg,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color:
-                                _isModelReady ? AppTheme.fresh : Colors.orange,
-                            fontWeight: FontWeight.w500,
+                          _isModelReady ? 'AI Ready' : 'Loading...',
+                          style: const TextStyle(
+                            color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                     ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Text('Cek Pisangmu! 🍌',
+                style: TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white,
+                  shadows: [Shadow(color: Colors.black26, blurRadius: 4)],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text('Foto pisang → deteksi dalam 1 detik',
+                style: TextStyle(
+                  fontSize: 13, color: Colors.white.withValues(alpha: 0.85), fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                  const SizedBox(height: 24),
+  // ── Home Tab ──
+  Widget _buildHomeTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
 
-                  // Area gambar
-                  GestureDetector(
-                    onTap: _showImageSourceDialog,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      height: 300,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: _selectedImage != null
-                              ? AppTheme.primary
-                              : Colors.grey.shade200,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 20,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(22),
-                        child: _buildImageArea(),
-                      ),
-                    ),
-                  ),
+          // Stats
+          StatsWidget(db: _db),
 
-                  const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-                  // Tombol deteksi
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: _isModelReady ? _showImageSourceDialog : null,
-                      icon: const Icon(Icons.search_rounded, size: 22),
-                      label: const Text('Pilih Gambar & Deteksi'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary,
-                        foregroundColor: AppTheme.textLight,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                      ),
-                    ),
-                  ),
+          // Section title
+          const Text('📸 Deteksi Sekarang',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+          const SizedBox(height: 12),
 
-                  const SizedBox(height: 24),
-
-                  // Hasil deteksi (muncul dengan animasi)
-                  if (_isLoading)
-                    const _LoadingCard()
-                  else if (_result != null)
-                    FadeTransition(
-                      opacity: _resultFadeAnim,
-                      child: SlideTransition(
-                        position: _resultSlideAnim,
-                        child: ResultCard(result: _result!),
-                      ),
-                    ),
-
-                  const SizedBox(height: 24),
-
-                  // Statistik (Pakai UniqueKey agar selalu direbuild saat state HomeScreen berubah)
-                  StatsWidget(
-                    key: ValueKey(
-                        _result?.timestamp.millisecondsSinceEpoch ?? 0),
-                    db: _db,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Tips
-                  const _TipsCard(),
-
-                  const SizedBox(height: 32),
-                ]),
+          // Image area
+          GestureDetector(
+            onTap: _showSourceSheet,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: _selectedImage != null ? AppTheme.yellowDark : const Color(0xFFFFD93D),
+                  width: 2.5,
+                  strokeAlign: BorderSide.strokeAlignOutside,
+                ),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 6))],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: _buildImageArea(),
               ),
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // Action buttons
+          Row(
+            children: [
+              Expanded(child: _ActionBtn(
+                emoji: '📷', label: 'Kamera',
+                color: AppTheme.yellow,
+                shadow: const Color(0x40F5A623),
+                onTap: () => _pickImage(ImageSource.camera),
+              )),
+              const SizedBox(width: 12),
+              Expanded(child: _ActionBtn(
+                emoji: '🖼️', label: 'Galeri',
+                color: AppTheme.green,
+                shadow: const Color(0x406BCB77),
+                textColor: Colors.white,
+                onTap: () => _pickImage(ImageSource.gallery),
+              )),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Result
+          if (_isLoading) _buildLoadingCard()
+          else if (_result != null)
+            FadeTransition(
+              opacity: _resultFade,
+              child: SlideTransition(
+                position: _resultSlide,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('✅ Hasil Deteksi',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+                    const SizedBox(height: 12),
+                    ResultCard(result: _result!),
+                  ],
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 20),
+
+          // Tips
+          _buildTipsCard(),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
@@ -365,15 +356,26 @@ class _HomeScreenState extends State<HomeScreen>
     if (_isLoading) {
       return Container(
         color: Colors.grey.shade50,
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: AppTheme.primary),
-            SizedBox(height: 16),
-            Text(
-              'Menganalisa gambar...',
-              style: TextStyle(color: AppTheme.textGrey, fontSize: 14),
+            Container(
+              width: 56, height: 56,
+              decoration: BoxDecoration(
+                color: AppTheme.yellow.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Center(
+                child: SizedBox(
+                  width: 28, height: 28,
+                  child: CircularProgressIndicator(color: AppTheme.yellowDark, strokeWidth: 3),
+                ),
+              ),
             ),
+            const SizedBox(height: 14),
+            const Text('Menganalisa gambar...', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+            const SizedBox(height: 4),
+            const Text('Model AI sedang bekerja', style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
           ],
         ),
       );
@@ -384,30 +386,22 @@ class _HomeScreenState extends State<HomeScreen>
         fit: StackFit.expand,
         children: [
           Image.file(_selectedImage!, fit: BoxFit.cover),
-          // Overlay gradien di bawah
           Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
+            bottom: 0, left: 0, right: 0,
             child: Container(
-              height: 60,
+              height: 56,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.4),
-                    Colors.transparent
-                  ],
+                  begin: Alignment.bottomCenter, end: Alignment.topCenter,
+                  colors: [Colors.black.withValues(alpha: 0.45), Colors.transparent],
                 ),
               ),
             ),
           ),
           Positioned(
-            bottom: 12,
-            right: 12,
+            bottom: 10, right: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(20),
@@ -415,11 +409,9 @@ class _HomeScreenState extends State<HomeScreen>
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.touch_app_rounded,
-                      size: 14, color: AppTheme.textGrey),
+                  Icon(Icons.touch_app_rounded, size: 13, color: AppTheme.textGrey),
                   SizedBox(width: 4),
-                  Text('Tap untuk ganti',
-                      style: TextStyle(fontSize: 12, color: AppTheme.textGrey)),
+                  Text('Tap untuk ganti', style: TextStyle(fontSize: 11, color: AppTheme.textGrey, fontWeight: FontWeight.w700)),
                 ],
               ),
             ),
@@ -431,50 +423,125 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        // Floating banana bg
+        const Text('🍌', style: TextStyle(fontSize: 80, color: Color(0x10000000))),
+        const SizedBox(height: 8),
         Container(
-          width: 80,
-          height: 80,
+          width: 60, height: 60,
           decoration: BoxDecoration(
-            color: AppTheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(24),
+            color: AppTheme.yellow,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: AppTheme.yellow.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 4))],
           ),
-          child:
-              const Center(child: Text('🍌', style: TextStyle(fontSize: 40))),
+          child: const Center(child: Text('📷', style: TextStyle(fontSize: 30))),
         ),
-        const SizedBox(height: 16),
-        const Text(
-          'Tap untuk pilih gambar pisang',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textLight,
-          ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          'Dari kamera atau galeri',
-          style: TextStyle(fontSize: 13, color: AppTheme.textGrey),
-        ),
+        const SizedBox(height: 12),
+        const Text('Tap untuk foto pisang',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+        const SizedBox(height: 4),
+        const Text('Kamera atau galeri',
+          style: TextStyle(fontSize: 12, color: AppTheme.textGrey)),
       ],
+    );
+  }
+
+  Widget _buildLoadingCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 16)],
+      ),
+      child: const Row(
+        children: [
+          SizedBox(width: 32, height: 32,
+            child: CircularProgressIndicator(color: AppTheme.yellowDark, strokeWidth: 3)),
+          SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Menganalisa...', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+              Text('Model AI sedang bekerja', style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipsCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF9E6), Color(0xFFFFF3CC)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.yellow, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('💡 Tips Foto Terbaik',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+          const SizedBox(height: 10),
+          for (final tip in [
+            ['📸', 'Pencahayaan cukup & terang'],
+            ['🍌', 'Pisang terlihat jelas & penuh'],
+            ['📏', 'Jarak 20–30 cm dari kamera'],
+            ['🚫', 'Hindari bayangan pada buah'],
+          ])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Text(tip[0], style: const TextStyle(fontSize: 16)),
+                  const SizedBox(width: 10),
+                  Text(tip[1], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ── Bottom Nav ──
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, -4))],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Row(
+            children: [
+              _NavItem(emoji: '🏠', label: 'Beranda', active: _currentTab == 0, onTap: () => setState(() => _currentTab = 0)),
+              _NavItem(emoji: '📜', label: 'Riwayat', active: _currentTab == 1, onTap: () => setState(() => _currentTab = 1)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-// ============================================================
-// Widget pembantu
-// ============================================================
+// ── Helper Widgets ──
 
-class _SourceButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
+class _SheetBtn extends StatelessWidget {
+  final String emoji, label;
   final Color color;
+  final Color textColor;
   final VoidCallback onTap;
 
-  const _SourceButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
+  const _SheetBtn({
+    required this.emoji, required this.label,
+    required this.color, required this.onTap,
+    this.textColor = AppTheme.textDark,
   });
 
   @override
@@ -484,16 +551,15 @@ class _SourceButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(16),
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 36),
+            Text(emoji, style: const TextStyle(fontSize: 36)),
             const SizedBox(height: 8),
-            Text(label,
-                style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+            Text(label, style: TextStyle(fontWeight: FontWeight.w800, color: color)),
           ],
         ),
       ),
@@ -501,81 +567,78 @@ class _SourceButton extends StatelessWidget {
   }
 }
 
-class _LoadingCard extends StatelessWidget {
-  const _LoadingCard();
+class _ActionBtn extends StatelessWidget {
+  final String emoji, label;
+  final Color color, shadow;
+  final Color textColor;
+  final VoidCallback onTap;
+
+  const _ActionBtn({
+    required this.emoji, required this.label,
+    required this.color, required this.shadow,
+    required this.onTap,
+    this.textColor = AppTheme.textDark,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: const Row(
-        children: [
-          SizedBox(
-            width: 32,
-            height: 32,
-            child: CircularProgressIndicator(
-                color: AppTheme.primary, strokeWidth: 3),
-          ),
-          SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Menganalisa...',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-              Text('Model AI sedang bekerja',
-                  style: TextStyle(color: AppTheme.textGrey, fontSize: 13)),
-            ],
-          ),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: shadow, blurRadius: 16, offset: const Offset(0, 4))],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: textColor)),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _TipsCard extends StatelessWidget {
-  final List<Map<String, String>> _tips = const [
-    {'icon': '📸', 'text': 'Foto dengan pencahayaan cukup'},
-    {'icon': '🍌', 'text': 'Pastikan pisang terlihat jelas'},
-    {'icon': '🔍', 'text': 'Ambil dari jarak 20-30 cm'},
-    {'icon': '🚫', 'text': 'Hindari bayangan pada buah'},
-  ];
+class _NavItem extends StatelessWidget {
+  final String emoji, label;
+  final bool active;
+  final VoidCallback onTap;
 
-  const _TipsCard();
+  const _NavItem({required this.emoji, required this.label, required this.active, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '💡 Tips Foto Terbaik',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-          ),
-          const SizedBox(height: 12),
-          ..._tips.map((tip) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  children: [
-                    Text(tip['icon']!, style: const TextStyle(fontSize: 16)),
-                    const SizedBox(width: 10),
-                    Text(tip['text']!,
-                        style: const TextStyle(
-                            fontSize: 13, color: AppTheme.textLight)),
-                  ],
-                ),
-              )),
-        ],
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 48, height: 48,
+              decoration: BoxDecoration(
+                color: active ? AppTheme.yellow : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: active ? [BoxShadow(color: AppTheme.yellow.withValues(alpha: 0.4), blurRadius: 12)] : [],
+              ),
+              child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
+            ),
+            const SizedBox(height: 3),
+            Text(label,
+              style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w800,
+                color: active ? AppTheme.yellowDark : AppTheme.textGrey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

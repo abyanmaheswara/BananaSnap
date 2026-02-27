@@ -5,69 +5,58 @@ import '../services/banana_classifier.dart';
 
 class ResultCard extends StatelessWidget {
   final PredictionResult result;
-
   const ResultCard({super.key, required this.result});
 
   @override
   Widget build(BuildContext context) {
-    final color = result.isFresh ? AppTheme.fresh : AppTheme.rotten;
-    final bgColor = result.isFresh
-        ? AppTheme.fresh.withValues(alpha: 0.08)
-        : AppTheme.rotten.withValues(alpha: 0.08);
+    final color  = result.isFresh ? AppTheme.greenDark : AppTheme.redDark;
+    final bgColor = result.isFresh ? const Color(0xFFE8F8EA) : const Color(0xFFFFEEEE);
+    final emoji  = result.isFresh ? '✅' : '❌';
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
+          BoxShadow(color: color.withValues(alpha: 0.12), blurRadius: 24, offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
         children: [
-          // Header status
+          // Status header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(result.emoji, style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 12),
+                Container(
+                  width: 52, height: 52,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(child: Text(emoji, style: const TextStyle(fontSize: 28))),
+                ),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          result.statusText,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: color,
-                            letterSpacing: 0.5,
-                          ),
+                      Text(
+                        result.isFresh ? 'LAYAK DIKONSUMSI' : 'TIDAK LAYAK',
+                        style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w900, color: color,
                         ),
                       ),
+                      const SizedBox(height: 3),
                       Text(
-                        result.isFresh
-                            ? 'Pisang aman untuk dikonsumsi'
-                            : 'Pisang sudah tidak segar',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: color.withValues(alpha: 0.8),
-                        ),
+                        result.isFresh ? 'Pisang segar terdeteksi 🍌' : 'Pisang sudah tidak segar',
+                        style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.75), fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -76,55 +65,44 @@ class ResultCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // Confidence bar
+          // Confidence
           Row(
             children: [
-              const Text(
-                'Tingkat kepercayaan:',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppTheme.textGrey,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              const Text('Tingkat kepercayaan AI',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textGrey)),
               const Spacer(),
-              Text(
-                result.confidencePercent,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
+              Text(result.confidencePercent,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color)),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           LinearPercentIndicator(
             lineHeight: 12,
-            percent: result.confidence,
+            percent: result.confidence.clamp(0.0, 1.0),
             backgroundColor: Colors.grey.shade100,
-            progressColor: color,
+            linearGradient: LinearGradient(
+              colors: result.isFresh
+                  ? [AppTheme.green, AppTheme.greenDark]
+                  : [AppTheme.red, AppTheme.redDark],
+            ),
             barRadius: const Radius.circular(8),
             padding: EdgeInsets.zero,
             animation: true,
-            animationDuration: 800,
+            animationDuration: 900,
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-          // Waktu deteksi
+          // Timestamp
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.access_time_rounded,
-                  size: 14, color: AppTheme.textGrey),
-              const SizedBox(width: 4),
-              Text(
-                _formatTime(result.timestamp),
-                style: const TextStyle(fontSize: 12, color: AppTheme.textGrey),
-              ),
+              const Icon(Icons.access_time_rounded, size: 13, color: AppTheme.textGrey),
+              const SizedBox(width: 5),
+              Text(_formatTime(result.timestamp),
+                style: const TextStyle(fontSize: 12, color: AppTheme.textGrey, fontWeight: FontWeight.w600)),
             ],
           ),
         ],
@@ -135,7 +113,6 @@ class ResultCard extends StatelessWidget {
   String _formatTime(DateTime dt) {
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');
-    final s = dt.second.toString().padLeft(2, '0');
-    return '$h:$m:$s - ${dt.day}/${dt.month}/${dt.year}';
+    return '$h:$m · ${dt.day}/${dt.month}/${dt.year}';
   }
 }
