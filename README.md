@@ -176,17 +176,7 @@ Ambil nilai tertinggi → Hasil final
 
 ---
 
-## 👥 Pembagian Tugas
-
-| Orang 1                  | Orang 2                        |
-| ------------------------ | ------------------------------ |
-| Training model Python    | Flutter UI (screens & widgets) |
-| Evaluasi & export TFLite | Integrasi TFLite ke Flutter    |
-| Persiapan dataset Kaggle | Testing & debugging            |
-
----
-
-## 📦 Dependencies Utama
+## Dependencies Utama
 
 ```yaml
 flutter_litert: ^0.1.7 # TFLite/LiteRT inferensi model on-device (Auto-Bundle C++ DLL)
