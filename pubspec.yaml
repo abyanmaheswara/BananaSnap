@@ -1,0 +1,44 @@
+name: banasnap
+description: BanaSnap — Snap, detect, done! Deteksi kelayakan pisang dengan AI on-device.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Kamera & Galeri
+  camera: ^0.10.5+9
+  image_picker: ^1.0.7
+
+  # TFLite untuk model AI on-device
+  tflite_flutter: ^0.10.4
+
+  # Pemrosesan gambar
+  image: ^4.1.7
+
+  # Penyimpanan riwayat lokal
+  sqflite: ^2.3.2
+  path: ^1.9.0
+  path_provider: ^2.1.2
+
+  # UI & utilitas
+  cupertino_icons: ^1.0.6
+  intl: ^0.19.0
+  percent_indicator: ^4.2.3
+  lottie: ^3.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/model/banana_model.tflite
+    - assets/model/labels.txt
