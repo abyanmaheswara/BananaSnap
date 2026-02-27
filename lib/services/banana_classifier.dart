@@ -30,7 +30,6 @@ class BananaClassifier {
   static const String _modelPath = 'assets/model/banana_model.tflite';
   static const String _labelsPath = 'assets/model/labels.txt';
   static const int _inputSize = 224; // MobileNetV2 input size
-  static const int _numClasses = 2;
 
   Interpreter? _interpreter;
   List<String> _labels = [];
@@ -77,20 +76,24 @@ class BananaClassifier {
     final imageBytes = await imageFile.readAsBytes();
     final inputTensor = _preprocessImage(imageBytes);
 
-    // 2. Siapkan output tensor
-    final output = List.filled(_numClasses, 0.0).reshape([1, _numClasses]);
+    // 2. Siapkan output tensor [1, 1] (karena model Sigmoid binary output)
+    final output = List.filled(1, 0.0).reshape([1, 1]);
 
     // 3. Jalankan inferensi
     _interpreter!.run(inputTensor, output);
 
-    // 4. Ambil hasil
-    final scores = output[0] as List<double>;
-    final maxIndex = scores.indexOf(scores.reduce((a, b) => a > b ? a : b));
-    final confidence = scores[maxIndex];
-    final label = maxIndex < _labels.length ? _labels[maxIndex] : 'UNKNOWN';
-    final isFresh = label.toUpperCase().contains('FRESH') ||
-        label.toUpperCase().contains('LAYAK') &&
-            !label.toUpperCase().contains('TIDAK');
+    // 4. Ambil hasil (Model Sigmoid: mendekati 1.0 biasanya Rotten, mendekati 0.0 Fresh -
+    // tapi tergantung saat training. Kita asumsikan > 0.5 Rotten, <= 0.5 Fresh)
+    final score = (output[0] as List)[0] as double;
+
+    // Dari training history:
+    // Jika score mendekati 0 -> Fresh (Layak)
+    // Jika score mendekati 1 -> Rotten (Tidak Layak)
+    // Silakan sesuaikan terbalik jika modelnya terbalik.
+    final bool isFresh = score < 0.5;
+
+    // Confidence: Jika fresh, confidence = 1 - score. Jika rotten, confidence = score.
+    final confidence = isFresh ? (1.0 - score) : score;
 
     return PredictionResult(
       label: isFresh ? 'LAYAK' : 'TIDAK_LAYAK',

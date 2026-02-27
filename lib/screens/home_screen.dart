@@ -339,8 +339,12 @@ class _HomeScreenState extends State<HomeScreen>
 
                   const SizedBox(height: 24),
 
-                  // Statistik
-                  StatsWidget(db: _db),
+                  // Statistik (Pakai UniqueKey agar selalu direbuild saat state HomeScreen berubah)
+                  StatsWidget(
+                    key: ValueKey(
+                        _result?.timestamp.millisecondsSinceEpoch ?? 0),
+                    db: _db,
+                  ),
 
                   const SizedBox(height: 20),
 
@@ -391,7 +395,10 @@ class _HomeScreenState extends State<HomeScreen>
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [Colors.black.withValues(alpha: 0.4), Colors.transparent],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.transparent
+                  ],
                 ),
               ),
             ),

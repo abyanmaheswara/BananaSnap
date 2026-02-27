@@ -43,28 +43,34 @@ class ResultCard extends StatelessWidget {
               children: [
                 Text(result.emoji, style: const TextStyle(fontSize: 28)),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      result.statusText,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                        letterSpacing: 0.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          result.statusText,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: color,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
-                    ),
-                    Text(
-                      result.isFresh
-                          ? 'Pisang aman untuk dikonsumsi'
-                          : 'Pisang sudah tidak segar',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: color.withValues(alpha: 0.8),
+                      Text(
+                        result.isFresh
+                            ? 'Pisang aman untuk dikonsumsi'
+                            : 'Pisang sudah tidak segar',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: color.withValues(alpha: 0.8),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -112,7 +118,8 @@ class ResultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.access_time_rounded, size: 14, color: AppTheme.textGrey),
+              const Icon(Icons.access_time_rounded,
+                  size: 14, color: AppTheme.textGrey),
               const SizedBox(width: 4),
               Text(
                 _formatTime(result.timestamp),
