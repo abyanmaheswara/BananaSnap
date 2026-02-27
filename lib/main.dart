@@ -30,7 +30,7 @@ class BananaFreshnessApp extends StatelessWidget {
     return MaterialApp(
       title: 'BanaSnap',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.premiumTheme,
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
@@ -41,56 +41,67 @@ class BananaFreshnessApp extends StatelessWidget {
 }
 
 class AppTheme {
-  // Palet warna utama
-  static const Color primary = Color(0xFFF5C518); // Kuning pisang
-  static const Color primaryDark = Color(0xFFD4A017);
-  static const Color fresh = Color(0xFF4CAF50); // Hijau = layak
-  static const Color rotten = Color(0xFFE53935); // Merah = tidak layak
-  static const Color bgLight = Color(0xFFFFFDE7);
-  static const Color textDark = Color(0xFF1A1A1A);
-  static const Color textGrey = Color(0xFF757575);
-  static const Color cardBg = Color(0xFFFFFFFF);
+  // Palet Warna Premium (Dark & Neon)
+  static const Color primary = Color(0xFFFFD54F); // Neon Banana Yellow
+  static const Color primaryDark = Color(0xFFFBC02D);
+  static const Color fresh = Color(0xFF00E676); // Neon Green (Layak)
+  static const Color rotten = Color(0xFFFF5252); // Neon Red (Tidak Layak)
 
-  static ThemeData get lightTheme => ThemeData(
+  // Backgrounds
+  static const Color bgDark = Color(0xFF121212); // Deep Space Black
+  static const Color surface = Color(0xFF1E1E1E); // Elevated Dark
+  static const Color cardBg = Color(0xFF242424);
+
+  // Texts
+  static const Color textLight = Color(0xFFFFFFFF);
+  static const Color textGrey = Color(0xFFAAAAAA);
+
+  static ThemeData get premiumTheme => ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: primary,
-          brightness: Brightness.light,
+          brightness: Brightness.dark,
+          surface: bgDark,
+          primary: primary,
+          secondary: fresh,
         ),
-        scaffoldBackgroundColor: bgLight,
-        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: bgDark,
+        fontFamily: 'Inter', // Modern font if available, fallback to default
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
           titleTextStyle: TextStyle(
-            color: textDark,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+            color: textLight,
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.0,
           ),
-          iconTheme: IconThemeData(color: textDark),
+          iconTheme: IconThemeData(color: primary),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: primary,
-            foregroundColor: textDark,
-            elevation: 0,
+            foregroundColor: bgDark,
+            elevation: 8,
+            shadowColor: primary.withValues(alpha: 0.4),
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
             ),
             textStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
             ),
           ),
         ),
         cardTheme: const CardThemeData(
           color: cardBg,
-          elevation: 0,
+          elevation: 8,
+          shadowColor: Colors.black54,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20)),
+            borderRadius: BorderRadius.all(Radius.circular(24)),
           ),
         ),
       );

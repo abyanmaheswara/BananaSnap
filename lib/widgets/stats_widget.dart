@@ -32,7 +32,7 @@ class _StatsWidgetState extends State<StatsWidget> {
       children: [
         const Text(
           'Statistik Deteksi',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textLight),
         ),
         const SizedBox(height: 12),
         Row(

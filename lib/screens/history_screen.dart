@@ -59,7 +59,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
+      backgroundColor: AppTheme.bgDark,
       appBar: AppBar(
         title: const Text('Riwayat Deteksi'),
         actions: [

@@ -200,14 +200,14 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.bgLight,
+      backgroundColor: AppTheme.bgDark,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // App Bar
             SliverAppBar(
               floating: true,
-              backgroundColor: AppTheme.bgLight,
+              backgroundColor: AppTheme.bgDark,
               elevation: 0,
               title: const Row(
                 mainAxisSize: MainAxisSize.min,
@@ -219,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen>
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textDark,
+                      color: AppTheme.textLight,
                     ),
                   ),
                 ],
@@ -227,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen>
               actions: [
                 IconButton(
                   icon: const Icon(Icons.history_rounded,
-                      color: AppTheme.textDark),
+                      color: AppTheme.textLight),
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const HistoryScreen()),
@@ -317,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen>
                       label: const Text('Pilih Gambar & Deteksi'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primary,
-                        foregroundColor: AppTheme.textDark,
+                        foregroundColor: AppTheme.textLight,
                         disabledBackgroundColor: Colors.grey.shade300,
                       ),
                     ),
@@ -447,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen>
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textDark,
+            color: AppTheme.textLight,
           ),
         ),
         const SizedBox(height: 6),
@@ -571,7 +571,7 @@ class _TipsCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(tip['text']!,
                         style: const TextStyle(
-                            fontSize: 13, color: AppTheme.textDark)),
+                            fontSize: 13, color: AppTheme.textLight)),
                   ],
                 ),
               )),
