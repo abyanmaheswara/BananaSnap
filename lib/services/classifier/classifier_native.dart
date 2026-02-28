@@ -79,6 +79,15 @@ class BananaClassifierImpl implements BananaClassifier {
     // Jika Tidak Fresh (score mendekati 1), confidence adalah score
     final confidence = isFresh ? (1.0 - score) : score;
 
+    if (confidence < 0.75) {
+      return PredictionResult(
+        label: 'BUKAN_PISANG',
+        confidence: confidence,
+        isFresh: false,
+        timestamp: DateTime.now(),
+      );
+    }
+
     return PredictionResult(
       label: isFresh ? 'LAYAK' : 'TIDAK_LAYAK',
       confidence: confidence,

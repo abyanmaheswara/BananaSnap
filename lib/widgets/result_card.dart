@@ -9,9 +9,28 @@ class ResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color  = result.isFresh ? AppTheme.greenDark : AppTheme.redDark;
-    final bgColor = result.isFresh ? const Color(0xFFE8F8EA) : const Color(0xFFFFEEEE);
-    final emoji  = result.isFresh ? '✅' : '❌';
+    final bool isNotBanana = result.label == 'BUKAN_PISANG';
+
+    final color = isNotBanana
+        ? Colors.orange.shade800
+        : (result.isFresh ? AppTheme.greenDark : AppTheme.redDark);
+    final bgColor = isNotBanana
+        ? const Color(0xFFFFF4E0)
+        : (result.isFresh ? const Color(0xFFE8F8EA) : const Color(0xFFFFEEEE));
+    final emoji = isNotBanana ? '❓' : (result.isFresh ? '✅' : '❌');
+
+    String title = '';
+    String subtitle = '';
+    if (isNotBanana) {
+      title = 'BUKAN PISANG';
+      subtitle = 'Objek tidak dikenal 🍌❓';
+    } else if (result.isFresh) {
+      title = 'LAYAK DIKONSUMSI';
+      subtitle = 'Pisang segar terdeteksi 🍌';
+    } else {
+      title = 'TIDAK LAYAK';
+      subtitle = 'Pisang sudah tidak segar';
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -20,7 +39,10 @@ class ResultCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: [
-          BoxShadow(color: color.withValues(alpha: 0.12), blurRadius: 24, offset: const Offset(0, 6)),
+          BoxShadow(
+              color: color.withValues(alpha: 0.12),
+              blurRadius: 24,
+              offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -35,12 +57,14 @@ class ResultCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 52, height: 52,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Center(child: Text(emoji, style: const TextStyle(fontSize: 28))),
+                  child: Center(
+                      child: Text(emoji, style: const TextStyle(fontSize: 28))),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -48,15 +72,20 @@ class ResultCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        result.isFresh ? 'LAYAK DIKONSUMSI' : 'TIDAK LAYAK',
+                        title,
                         style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w900, color: color,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: color,
                         ),
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        result.isFresh ? 'Pisang segar terdeteksi 🍌' : 'Pisang sudah tidak segar',
-                        style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.75), fontWeight: FontWeight.w600),
+                        subtitle,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: color.withValues(alpha: 0.75),
+                            fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -71,10 +100,14 @@ class ResultCard extends StatelessWidget {
           Row(
             children: [
               const Text('Tingkat kepercayaan AI',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textGrey)),
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textGrey)),
               const Spacer(),
               Text(result.confidencePercent,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color)),
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w900, color: color)),
             ],
           ),
           const SizedBox(height: 8),
@@ -99,10 +132,14 @@ class ResultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.access_time_rounded, size: 13, color: AppTheme.textGrey),
+              const Icon(Icons.access_time_rounded,
+                  size: 13, color: AppTheme.textGrey),
               const SizedBox(width: 5),
               Text(_formatTime(result.timestamp),
-                style: const TextStyle(fontSize: 12, color: AppTheme.textGrey, fontWeight: FontWeight.w600)),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textGrey,
+                      fontWeight: FontWeight.w600)),
             ],
           ),
         ],
