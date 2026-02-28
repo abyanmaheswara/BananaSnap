@@ -17,6 +17,23 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    
+    // Fix untuk package lawas (tipe AGP 8.0+) yang tidak memiliki namespace
+    pluginManager.withPlugin("com.android.library") {
+        val extension = extensions.getByName("android") as com.android.build.gradle.LibraryExtension
+        if (extension.namespace == null) {
+            val packageId = project.group.toString().takeIf { it.isNotEmpty() } ?: "com.example.${project.name}"
+            extension.namespace = packageId
+        }
+    }
+    
+    pluginManager.withPlugin("com.android.application") {
+        val extension = extensions.getByName("android") as com.android.build.gradle.internal.dsl.BaseAppModuleExtension
+        if (extension.namespace == null) {
+            val packageId = project.group.toString().takeIf { it.isNotEmpty() } ?: "com.example.${project.name}"
+            extension.namespace = packageId
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
