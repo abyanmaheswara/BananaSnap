@@ -24,11 +24,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> _load() async {
     final data = await _db.getAllHistory();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _history = data;
         _isLoading = false;
       });
+    }
   }
 
   Future<void> _delete(int id) async {
