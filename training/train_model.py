@@ -64,6 +64,7 @@ def create_data_generators():
         shear_range=0.15,
         zoom_range=0.2,
         horizontal_flip=True,
+        vertical_flip=True,
         brightness_range=[0.7, 1.3],
         fill_mode='nearest',
     )
@@ -150,6 +151,25 @@ def train(model, base_model, train_gen, val_gen):
         ),
     ]
 
+    # Hitung class weight otomatis
+    total_fresh = train_gen.classes.tolist().count(0)
+    total_rotten = train_gen.classes.tolist().count(1)
+    if total_fresh > 0 and total_rotten > 0:
+        total = total_fresh + total_rotten
+        class_weight = {
+            0: total / (2 * total_fresh),  # fresh
+            1: total / (2 * total_rotten), # rotten
+        }
+        print(f"\n[TRAIN] Menggunakan Class Weight: {class_weight}")
+    else:
+        # Fallback manual user based counts if dynamic fetch fails
+        total = 381 + 530
+        class_weight = {
+            0: total / (2 * 381),  
+            1: total / (2 * 530),  
+        }
+        print(f"\n[TRAIN] Fallback MENGGUNAKAN MANUAL Class Weight: {class_weight}")
+
     # === Fase 1: Training dengan base model frozen ===
     print(f"\n[TRAIN] Fase 1: Training head ({EPOCHS_FROZEN} epoch)...")
     history1 = model.fit(
@@ -157,6 +177,7 @@ def train(model, base_model, train_gen, val_gen):
         epochs=EPOCHS_FROZEN,
         validation_data=val_gen,
         callbacks=callbacks,
+        class_weight=class_weight,
     )
 
     # === Fase 2: Fine-tuning (unfreeze sebagian layer terakhir) ===
@@ -179,6 +200,7 @@ def train(model, base_model, train_gen, val_gen):
         epochs=EPOCHS_FINETUNE,
         validation_data=val_gen,
         callbacks=callbacks,
+        class_weight=class_weight,
     )
 
     return history1, history2
