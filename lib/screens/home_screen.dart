@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -474,7 +475,9 @@ class _HomeScreenState extends State<HomeScreen>
       return Stack(
         fit: StackFit.expand,
         children: [
-          Image.file(_selectedImage!, fit: BoxFit.cover),
+          kIsWeb
+              ? Image.network(_selectedImage!.path, fit: BoxFit.cover)
+              : Image.file(_selectedImage!, fit: BoxFit.cover),
           Positioned(
             bottom: 0,
             left: 0,

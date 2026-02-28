@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../main.dart';
 import '../services/history_database.dart';
@@ -23,7 +24,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> _load() async {
     final data = await _db.getAllHistory();
-    if (mounted) setState(() { _history = data; _isLoading = false; });
+    if (mounted)
+      setState(() {
+        _history = data;
+        _isLoading = false;
+      });
   }
 
   Future<void> _delete(int id) async {
@@ -36,18 +41,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Hapus Semua?', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text('Hapus Semua?',
+            style: TextStyle(fontWeight: FontWeight.w800)),
         content: const Text('Semua riwayat akan dihapus permanen.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Hapus', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w800)),
+            child: const Text('Hapus',
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
     );
-    if (ok == true) { await _db.clearAll(); _load(); }
+    if (ok == true) {
+      await _db.clearAll();
+      _load();
+    }
   }
 
   @override
@@ -73,7 +86,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.yellowDark));
+      return const Center(
+          child: CircularProgressIndicator(color: AppTheme.yellowDark));
     }
 
     if (_history.isEmpty) {
@@ -84,10 +98,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
             Text('📭', style: TextStyle(fontSize: 64)),
             SizedBox(height: 16),
             Text('Belum ada riwayat',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
             SizedBox(height: 8),
             Text('Mulai deteksi pisang!',
-              style: TextStyle(color: AppTheme.textGrey, fontSize: 14)),
+                style: TextStyle(color: AppTheme.textGrey, fontSize: 14)),
           ],
         ),
       );
@@ -101,13 +115,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Row(
               children: [
                 const Text('📜 Riwayat Deteksi',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 if (_history.isNotEmpty)
                   GestureDetector(
                     onTap: _clearAll,
                     child: const Text('Hapus Semua',
-                      style: TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
+                            fontWeight: FontWeight.w700)),
                   ),
               ],
             ),
@@ -136,9 +154,10 @@ class _HistoryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = item.isFresh ? AppTheme.greenDark : AppTheme.redDark;
-    final bg    = item.isFresh ? const Color(0xFFE8F8EA) : const Color(0xFFFFEEEE);
-    final dt    = item.timestamp;
-    final time  = '${dt.day}/${dt.month}/${dt.year}  ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+    final bg = item.isFresh ? const Color(0xFFE8F8EA) : const Color(0xFFFFEEEE);
+    final dt = item.timestamp;
+    final time =
+        '${dt.day}/${dt.month}/${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
     return Dismissible(
       key: Key('h_${item.id}'),
@@ -159,23 +178,30 @@ class _HistoryItem extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: color.withValues(alpha: 0.2)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)
+          ],
         ),
         child: Row(
           children: [
             // Thumbnail
             Container(
-              width: 58, height: 58,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 color: bg,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: File(item.imagePath).existsSync()
-                    ? Image.file(File(item.imagePath), fit: BoxFit.cover)
-                    : Center(child: Text(item.isFresh ? '✅' : '❌',
-                        style: const TextStyle(fontSize: 28))),
+                child: kIsWeb
+                    ? Image.network(item.imagePath, fit: BoxFit.cover)
+                    : (File(item.imagePath).existsSync()
+                        ? Image.file(File(item.imagePath), fit: BoxFit.cover)
+                        : Center(
+                            child: Text(item.isFresh ? '✅' : '❌',
+                                style: const TextStyle(fontSize: 28)))),
               ),
             ),
             const SizedBox(width: 14),
@@ -185,14 +211,23 @@ class _HistoryItem extends StatelessWidget {
                 children: [
                   Text(
                     item.isFresh ? '✅ LAYAK' : '❌ TIDAK LAYAK',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: color),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        color: color),
                   ),
                   const SizedBox(height: 3),
-                  Text('Kepercayaan: ${(item.confidence * 100).toStringAsFixed(1)}%',
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textGrey, fontWeight: FontWeight.w600)),
+                  Text(
+                      'Kepercayaan: ${(item.confidence * 100).toStringAsFixed(1)}%',
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textGrey,
+                          fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(time,
-                    style: TextStyle(fontSize: 11, color: AppTheme.textGrey.withValues(alpha: 0.7))),
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textGrey.withValues(alpha: 0.7))),
                 ],
               ),
             ),
