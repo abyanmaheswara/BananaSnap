@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -40,8 +41,17 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoCtrl.forward().then((_) => _textCtrl.forward());
 
-    Future.delayed(const Duration(milliseconds: 2800), () {
-      if (mounted) Navigator.pushReplacementNamed(context, '/home');
+    Future.delayed(const Duration(milliseconds: 2800), () async {
+      if (!mounted) return;
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeen = prefs.getBool('has_seen_onboarding') ?? false;
+      if (mounted) {
+        if (hasSeen) {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          Navigator.pushReplacementNamed(context, '/onboarding');
+        }
+      }
     });
   }
 

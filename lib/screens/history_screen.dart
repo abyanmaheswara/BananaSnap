@@ -92,16 +92,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     if (_history.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('📭', style: TextStyle(fontSize: 64)),
-            SizedBox(height: 16),
-            Text('Belum ada riwayat',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            SizedBox(height: 8),
-            Text('Mulai deteksi pisang!',
+            Image.asset(
+              'assets/images/empty_history.png',
+              width: 180,
+              height: 180,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 16),
+            const Text('Belum ada riwayat deteksi',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textDark)),
+            const SizedBox(height: 8),
+            const Text('Ayo mulai jepret pisang pertamamu!',
                 style: TextStyle(color: AppTheme.textGrey, fontSize: 14)),
           ],
         ),
