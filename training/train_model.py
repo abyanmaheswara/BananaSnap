@@ -38,9 +38,9 @@ import matplotlib.pyplot as plt
 # ============================================================
 #  KONFIGURASI - SESUAIKAN JIKA PERLU
 # ============================================================
-DATASET_DIR    = './dataset'
-OUTPUT_MODEL   = './banana_model.tflite'
-OUTPUT_LABELS  = './labels.txt'
+DATASET_DIR    = './training/dataset'
+OUTPUT_MODEL   = './assets/model/banana_model.tflite'
+OUTPUT_LABELS  = './assets/model/labels.txt'
 
 IMG_SIZE       = 224       # MobileNetV2 input size
 BATCH_SIZE     = 32
