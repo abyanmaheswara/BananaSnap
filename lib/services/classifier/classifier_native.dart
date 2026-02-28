@@ -79,7 +79,9 @@ class BananaClassifierImpl implements BananaClassifier {
     // Jika Tidak Fresh (score mendekati 1), confidence adalah score
     final confidence = isFresh ? (1.0 - score) : score;
 
-    if (confidence < 0.75) {
+    // Tingkatkan perlindungan batas ke 0.90 agar objek bertekstur/warna mirip
+    // tidak mudah dianggap sebagai pisang. Model Binary Classifier sangat rentan bias.
+    if (confidence < 0.90) {
       return PredictionResult(
         label: 'BUKAN_PISANG',
         confidence: confidence,

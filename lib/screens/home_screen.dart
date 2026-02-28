@@ -11,6 +11,10 @@ import '../widgets/result_card.dart';
 import '../widgets/stats_widget.dart';
 import 'history_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:typed_data';
+import 'package:screenshot/screenshot.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +38,8 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _resultCtrl;
   late Animation<double> _resultFade;
   late Animation<Offset> _resultSlide;
+
+  final ScreenshotController _screenshotCtrl = ScreenshotController();
 
   @override
   void initState() {
@@ -93,6 +99,14 @@ class _HomeScreenState extends State<HomeScreen>
         await imageFile.copy(savedPath);
       }
       await _db.insertDetection(result: result, imagePath: savedPath);
+
+      if (result.label != 'BUKAN_PISANG') {
+        final prefs = await SharedPreferences.getInstance();
+        int points = prefs.getInt('total_points') ?? 0;
+        await prefs.setInt('total_points', points + 10);
+        _snack('Selamat! +10 Poin 🍌💰');
+      }
+
       setState(() {
         _result = result;
         _isLoading = false;
@@ -179,6 +193,89 @@ class _HomeScreenState extends State<HomeScreen>
     _classifier.dispose();
     _resultCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveToGallery() async {
+    if (_selectedImage == null || _result == null) return;
+
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Menyimpan ke Galeri...'),
+            duration: Duration(seconds: 1)),
+      );
+
+      // Render an off-screen widget for a clean shareable card
+      final imageBytes = await _screenshotCtrl.captureFromWidget(
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppTheme.bgCream, Colors.white],
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🍌', style: TextStyle(fontSize: 32)),
+                  const SizedBox(width: 8),
+                  Text('BanaSnap AI',
+                      style: GoogleFonts.fredoka(
+                          fontSize: 24, color: AppTheme.yellowDark)),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: kIsWeb
+                    ? Image.network(_selectedImage!.path,
+                        height: 250, width: double.infinity, fit: BoxFit.cover)
+                    : Image.file(_selectedImage!,
+                        height: 250, width: double.infinity, fit: BoxFit.cover),
+              ),
+              const SizedBox(height: 16),
+              Material(
+                  color: Colors.transparent,
+                  child: ResultCard(result: _result!)),
+            ],
+          ),
+        ),
+        delay: const Duration(milliseconds: 100),
+      );
+
+      final result = await ImageGallerySaver.saveImage(
+          Uint8List.fromList(imageBytes),
+          quality: 90,
+          name: "BanaSnap_${DateTime.now().millisecondsSinceEpoch}");
+
+      if (mounted) {
+        if (result['isSuccess']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('✅ Berhasil disimpan ke Galeri!'),
+                backgroundColor: AppTheme.greenDark),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('❌ Gagal menyimpan gambar'),
+                backgroundColor: AppTheme.redDark),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Error: $e'), backgroundColor: AppTheme.redDark),
+        );
+      }
+    }
   }
 
   @override
@@ -422,6 +519,24 @@ class _HomeScreenState extends State<HomeScreen>
                                   color: AppTheme.textDark)),
                           const SizedBox(height: 12),
                           ResultCard(result: _result!),
+                          const SizedBox(height: 16),
+                          Center(
+                            child: OutlinedButton.icon(
+                              onPressed: _saveToGallery,
+                              icon:
+                                  const Icon(Icons.download_rounded, size: 20),
+                              label: const Text('Simpan ke Galeri'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppTheme.textDark,
+                                side: const BorderSide(
+                                    color: AppTheme.yellowDark, width: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),

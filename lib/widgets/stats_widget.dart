@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import '../services/history_database.dart';
 
@@ -10,7 +11,7 @@ class StatsWidget extends StatefulWidget {
 }
 
 class _StatsWidgetState extends State<StatsWidget> {
-  Map<String, int> _stats = {'total': 0, 'fresh': 0, 'rotten': 0};
+  Map<String, int> _stats = {'total': 0, 'fresh': 0, 'rotten': 0, 'points': 0};
 
   @override
   void initState() {
@@ -20,6 +21,8 @@ class _StatsWidgetState extends State<StatsWidget> {
 
   Future<void> _load() async {
     final s = await widget.db.getStats();
+    final prefs = await SharedPreferences.getInstance();
+    s['points'] = prefs.getInt('total_points') ?? 0;
     if (mounted) setState(() => _stats = s);
   }
 
@@ -34,7 +37,7 @@ class _StatsWidgetState extends State<StatsWidget> {
           color: AppTheme.yellowDark,
           bg: const Color(0xFFFFF3CC),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         _StatCard(
           value: '${_stats['fresh']}',
           label: 'LAYAK',
@@ -42,13 +45,21 @@ class _StatsWidgetState extends State<StatsWidget> {
           color: AppTheme.greenDark,
           bg: const Color(0xFFE8F8EA),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         _StatCard(
           value: '${_stats['rotten']}',
-          label: 'TDK LAYAK',
+          label: 'BUSUK',
           emoji: '❌',
           color: AppTheme.redDark,
           bg: const Color(0xFFFFEEEE),
+        ),
+        const SizedBox(width: 8),
+        _StatCard(
+          value: '${_stats['points']}',
+          label: 'POIN',
+          emoji: '🪙',
+          color: Colors.blueAccent.shade700,
+          bg: const Color(0xFFE6F0FF),
         ),
       ],
     );
@@ -59,8 +70,11 @@ class _StatCard extends StatelessWidget {
   final String value, label, emoji;
   final Color color, bg;
   const _StatCard({
-    required this.value, required this.label,
-    required this.emoji, required this.color, required this.bg,
+    required this.value,
+    required this.label,
+    required this.emoji,
+    required this.color,
+    required this.bg,
   });
 
   @override
@@ -71,17 +85,26 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 12, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+                color: color.withValues(alpha: 0.1),
+                blurRadius: 12,
+                offset: const Offset(0, 4))
+          ],
         ),
         child: Column(
           children: [
             Text(emoji, style: const TextStyle(fontSize: 20)),
             const SizedBox(height: 4),
             Text(value,
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: color)),
+                style: TextStyle(
+                    fontSize: 26, fontWeight: FontWeight.w900, color: color)),
             const SizedBox(height: 2),
             Text(label,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.textGrey)),
+                style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textGrey)),
           ],
         ),
       ),
