@@ -342,29 +342,32 @@ class _HomeScreenState extends State<HomeScreen>
                 // Image area
                 GestureDetector(
                   onTap: _showSourceSheet,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    constraints: const BoxConstraints(minHeight: 180),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: _selectedImage != null
-                            ? AppTheme.yellowDark
-                            : AppTheme.yellow,
-                        width: 2.5,
-                        strokeAlign: BorderSide.strokeAlignOutside,
+                  child: AspectRatio(
+                    aspectRatio: 4 / 3,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: _selectedImage != null
+                              ? AppTheme.yellowDark
+                              : AppTheme.yellow,
+                          width: 2.5,
+                          strokeAlign: BorderSide.strokeAlignOutside,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 20,
+                              offset: const Offset(0, 6))
+                        ],
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6))
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: _buildImageArea(),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: _buildImageArea(),
+                      ),
                     ),
                   ),
                 ),

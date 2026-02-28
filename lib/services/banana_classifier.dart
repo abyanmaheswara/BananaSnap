@@ -82,18 +82,17 @@ class BananaClassifier {
     // 3. Jalankan inferensi
     _interpreter!.run(inputTensor, output);
 
-    // 4. Ambil hasil (Model Sigmoid: mendekati 1.0 biasanya Rotten, mendekati 0.0 Fresh -
-    // tapi tergantung saat training. Kita asumsikan > 0.5 Rotten, <= 0.5 Fresh)
+    // 4. Ambil hasil output (Model Sigmoid 1 Node)
+    // Label 0: LAYAK
+    // Label 1: TIDAK_LAYAK
     final score = (output[0] as List)[0] as double;
 
-    // Dari training history:
-    // Jika score mendekati 0 -> Fresh (Layak)
-    // Jika score mendekati 1 -> Rotten (Tidak Layak)
-    // Silakan sesuaikan terbalik jika modelnya terbalik.
-    final bool isFresh = score < 0.5;
+    // Jika probabilitas < 0.5 berarti cenderung ke 0 (TIDAK_LAYAK)
+    // Jika probabilitas >= 0.5 berarti cenderung ke 1 (LAYAK)
+    final bool isFresh = score >= 0.5;
 
-    // Confidence: Jika fresh, confidence = 1 - score. Jika rotten, confidence = score.
-    final confidence = isFresh ? (1.0 - score) : score;
+    // Akurasi dari kelas yang terpilih
+    final confidence = isFresh ? score : (1.0 - score);
 
     return PredictionResult(
       label: isFresh ? 'LAYAK' : 'TIDAK_LAYAK',
