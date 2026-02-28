@@ -85,11 +85,14 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _runDetection(File imageFile) async {
     try {
       final result = await _classifier.predict(imageFile);
-      final appDir = await getApplicationDocumentsDirectory();
-      final saved = p.join(
-          appDir.path, 'banana_${DateTime.now().millisecondsSinceEpoch}.jpg');
-      await imageFile.copy(saved);
-      await _db.insertDetection(result: result, imagePath: saved);
+      String savedPath = imageFile.path;
+      if (!kIsWeb) {
+        final appDir = await getApplicationDocumentsDirectory();
+        savedPath = p.join(
+            appDir.path, 'banana_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        await imageFile.copy(savedPath);
+      }
+      await _db.insertDetection(result: result, imagePath: savedPath);
       setState(() {
         _result = result;
         _isLoading = false;
