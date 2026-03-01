@@ -15,8 +15,16 @@ class ResultCard extends StatelessWidget {
         ? Colors.orange.shade800
         : (result.isFresh ? AppTheme.greenDark : AppTheme.redDark);
     final bgColor = isNotBanana
-        ? const Color(0xFFFFF4E0)
-        : (result.isFresh ? const Color(0xFFE8F8EA) : const Color(0xFFFFEEEE));
+        ? (Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF3E2723)
+            : const Color(0xFFFFF4E0))
+        : (result.isFresh
+            ? (Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1B5E20)
+                : const Color(0xFFE8F8EA))
+            : (Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFFB71C1C)
+                : const Color(0xFFFFEEEE)));
     final emoji = isNotBanana ? '❓' : (result.isFresh ? '✅' : '❌');
 
     String title = '';
@@ -32,10 +40,12 @@ class ResultCard extends StatelessWidget {
       subtitle = 'Pisang sudah tidak segar';
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
         boxShadow: [
@@ -114,7 +124,8 @@ class ResultCard extends StatelessWidget {
           LinearPercentIndicator(
             lineHeight: 12,
             percent: result.confidence.clamp(0.0, 1.0),
-            backgroundColor: Colors.grey.shade100,
+            backgroundColor:
+                isDark ? const Color(0xFF2A2A2A) : Colors.grey.shade100,
             linearGradient: LinearGradient(
               colors: result.isFresh
                   ? [AppTheme.green, AppTheme.greenDark]

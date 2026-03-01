@@ -34,7 +34,7 @@ dependencies:
   dotted_border: ^3.1.0
   shared_preferences: ^2.5.4
   screenshot: ^3.0.0
-  image_gallery_saver: ^2.0.3
+  image_gallery_saver_plus: ^4.0.1
 
 dev_dependencies:
   flutter_test:

@@ -79,17 +79,23 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Auto-adjust background color for dark mode (makes it a dark shade of the accent color)
+    final adjustedBg = isDark ? color.withValues(alpha: 0.15) : bg;
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: bg,
+          color: adjustedBg,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
-            BoxShadow(
-                color: color.withValues(alpha: 0.1),
-                blurRadius: 12,
-                offset: const Offset(0, 4))
+            if (!isDark)
+              BoxShadow(
+                  color: color.withValues(alpha: 0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4))
           ],
         ),
         child: Column(

@@ -26,6 +26,8 @@ class BanaSnapApp extends StatelessWidget {
       title: 'BanaSnap',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Otomatis ikuti HP user
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
@@ -87,6 +89,55 @@ class AppTheme {
         ),
         cardTheme: const CardThemeData(
           color: cardWhite,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(24))),
+        ),
+      );
+
+  // --- DARK THEME ---
+  static const Color scaffoldDark = Color(0xFF121212);
+  static const Color cardDark = Color(0xFF1E1E1E);
+  static const Color textLight = Color(0xFFFAFAFA);
+
+  static ThemeData get darkTheme => ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: scaffoldDark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: yellow,
+          brightness: Brightness.dark,
+        ),
+        textTheme: GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          titleTextStyle: GoogleFonts.fredoka(
+            color: textLight,
+            fontSize: 22,
+            fontWeight: FontWeight.w400,
+          ),
+          iconTheme: const IconThemeData(color: textLight),
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: yellow, // Banana Yellow on Dark bg is fire
+            foregroundColor: textDark,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            textStyle:
+                GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800),
+          ),
+        ),
+        cardTheme: const CardThemeData(
+          color: cardDark,
           elevation: 0,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(24))),

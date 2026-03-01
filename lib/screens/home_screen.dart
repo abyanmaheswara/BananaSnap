@@ -13,7 +13,7 @@ import 'history_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:typed_data';
 import 'package:screenshot/screenshot.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -205,15 +205,20 @@ class _HomeScreenState extends State<HomeScreen>
             duration: Duration(seconds: 1)),
       );
 
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+
       // Render an off-screen widget for a clean shareable card
       final imageBytes = await _screenshotCtrl.captureFromWidget(
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppTheme.bgCream, Colors.white],
+              colors: [
+                isDark ? AppTheme.scaffoldDark : AppTheme.bgCream,
+                isDark ? AppTheme.cardDark : Colors.white,
+              ],
             ),
           ),
           child: Column(
@@ -248,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen>
         delay: const Duration(milliseconds: 100),
       );
 
-      final result = await ImageGallerySaver.saveImage(
+      final result = await ImageGallerySaverPlus.saveImage(
           Uint8List.fromList(imageBytes),
           quality: 90,
           name: "BanaSnap_${DateTime.now().millisecondsSinceEpoch}");
@@ -527,7 +532,10 @@ class _HomeScreenState extends State<HomeScreen>
                                   const Icon(Icons.download_rounded, size: 20),
                               label: const Text('Simpan ke Galeri'),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: AppTheme.textDark,
+                                foregroundColor: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color,
                                 side: const BorderSide(
                                     color: AppTheme.yellowDark, width: 2),
                                 padding: const EdgeInsets.symmetric(
@@ -579,8 +587,11 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(height: 14),
-            const Text('Menganalisa gambar...',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+            Text('Menganalisa gambar...',
+                style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyLarge?.color)),
             const SizedBox(height: 4),
             const Text('Model AI sedang bekerja',
                 style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
@@ -833,7 +844,7 @@ class _SheetBtn extends StatelessWidget {
 class _ActionBtn extends StatelessWidget {
   final String emoji, label;
   final Color color, shadow;
-  final Color textColor;
+  final Color? textColor;
   final VoidCallback onTap;
 
   const _ActionBtn({
@@ -842,7 +853,7 @@ class _ActionBtn extends StatelessWidget {
     required this.color,
     required this.shadow,
     required this.onTap,
-    this.textColor = AppTheme.textDark,
+    this.textColor = Colors.white, // Default is light text on buttons
   });
 
   @override
@@ -855,7 +866,9 @@ class _ActionBtn extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: shadow, blurRadius: 16, offset: const Offset(0, 4))
+            if (Theme.of(context).brightness == Brightness.light)
+              BoxShadow(
+                  color: shadow, blurRadius: 16, offset: const Offset(0, 4))
           ],
         ),
         child: Row(
