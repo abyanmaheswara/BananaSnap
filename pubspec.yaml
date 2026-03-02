@@ -35,6 +35,10 @@ dependencies:
   shared_preferences: ^2.5.4
   screenshot: ^3.0.0
   image_gallery_saver_plus: ^4.0.1
+  firebase_core: ^4.4.0
+  cloud_firestore: ^6.1.2
+  firebase_auth: ^6.1.4
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

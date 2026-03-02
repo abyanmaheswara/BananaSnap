@@ -1,0 +1,117 @@
+﻿Running Gradle task 'assembleRelease'...                        
+flutter : e: file:///D:
+/BananaSnap/android/bui
+ld.gradle.kts:28:5: 
+Expression 'java' 
+cannot be invoked as a 
+function. The function 
+'invoke()' is not found
+At line:1 char:49
++ ... coding = [System.
+Text.Encoding]::UTF8; 
+flutter build apk 2>&1 
+| Out-F ...
++                      
+                      
+~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (e: file:///D:   
+ /B...)' is not fou    
+nd:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+e: file:///D:/BananaSna
+p/android/build.gradle.
+kts:28:5: Unresolved 
+reference. None of the 
+following candidates 
+is applicable because 
+of receiver type 
+mismatch: 
+public val PluginDepend
+enciesSpec.java: 
+PluginDependencySpec 
+defined in 
+org.gradle.kotlin.dsl
+e: file:///D:/BananaSna
+p/android/build.gradle.
+kts:29:9: Unresolved 
+reference: toolchain
+e: file:///D:/BananaSna
+p/android/build.gradle.
+kts:30:13: Unresolved 
+reference: 
+languageVersion
+
+FAILURE: Build failed 
+with an exception.
+
+* Where:
+Build file 'D:\BananaSn
+ap\android\build.gradle
+.kts' line: 28
+
+* What went wrong:
+Script compilation 
+errors:
+
+  Line 28:     java {
+               ^ 
+Expression 'java' 
+cannot be invoked as a 
+function. The function 
+'invoke()' is not found
+
+  Line 28:     java {
+               ^ 
+Unresolved reference. 
+None of the following 
+candidates is 
+applicable because of 
+receiver type 
+mismatch: 
+                   
+public val PluginDepend
+enciesSpec.java: 
+PluginDependencySpec 
+defined in 
+org.gradle.kotlin.dsl
+
+  Line 29:         
+toolchain {
+                   ^ 
+Unresolved reference: 
+toolchain
+
+  Line 30:             
+languageVersion.set(Jav
+aLanguageVersion.of(17)
+)
+                       
+^ Unresolved 
+reference: 
+languageVersion
+
+4 errors
+
+* Try:
+> Run with 
+--stacktrace option to 
+get the stack trace.
+> Run with --info or 
+--debug option to get 
+more log output.
+> Run with --scan to 
+get full insights.
+> Get more help at http
+s://help.gradle.org.
+
+BUILD FAILED in 11s
+Running Gradle task 'assembleRelease'...                           11.9s
+Gradle task 
+assembleRelease failed 
+with exit code 1

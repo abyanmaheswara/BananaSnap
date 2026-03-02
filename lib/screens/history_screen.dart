@@ -67,7 +67,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.embedded) {
-      return _buildBody();
+      return SafeArea(bottom: false, child: _buildBody());
     }
     return Scaffold(
       backgroundColor: AppTheme.bgCream,

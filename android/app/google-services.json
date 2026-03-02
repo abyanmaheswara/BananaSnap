@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "576017400706",
+    "project_id": "bananasnap-6899a",
+    "storage_bucket": "bananasnap-6899a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576017400706:android:9257c318e0c66c2315859b",
+        "android_client_info": {
+          "package_name": "com.example.bananasnap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATI9Qff1B1ZMSnK20whWWiXXRrhG4y6SA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

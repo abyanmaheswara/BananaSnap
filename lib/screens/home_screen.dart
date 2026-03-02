@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -10,11 +11,12 @@ import '../services/history_database.dart';
 import '../widgets/result_card.dart';
 import '../widgets/stats_widget.dart';
 import 'history_screen.dart';
+import 'leaderboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:typed_data';
 import 'package:screenshot/screenshot.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/firebase_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,8 +24,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final BananaClassifier _classifier = BananaClassifier();
   final HistoryDatabase _db = HistoryDatabase();
   final ImagePicker _picker = ImagePicker();
@@ -39,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen>
   late Animation<double> _resultFade;
   late Animation<Offset> _resultSlide;
 
+  late AnimationController _scannerCtrl;
+
   final ScreenshotController _screenshotCtrl = ScreenshotController();
 
   @override
@@ -53,6 +56,11 @@ class _HomeScreenState extends State<HomeScreen>
         Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
       CurvedAnimation(parent: _resultCtrl, curve: Curves.easeOutCubic),
     );
+
+    _scannerCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1500))
+      ..repeat(reverse: true);
+
     _loadModel();
   }
 
@@ -76,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen>
         imageQuality: 90,
       );
       if (picked == null) return;
+      HapticFeedback.lightImpact();
       setState(() {
         _selectedImage = File(picked.path);
         _result = null;
@@ -104,8 +113,14 @@ class _HomeScreenState extends State<HomeScreen>
         final prefs = await SharedPreferences.getInstance();
         int points = prefs.getInt('total_points') ?? 0;
         await prefs.setInt('total_points', points + 10);
+
+        // --- SINKRONISASI CLOUD FIREBASE ---
+        await FirebaseService().incrementPoints(10);
+
         _snack('Selamat! +10 Poin 🍌💰');
       }
+
+      HapticFeedback.mediumImpact();
 
       setState(() {
         _result = result;
@@ -192,6 +207,7 @@ class _HomeScreenState extends State<HomeScreen>
   void dispose() {
     _classifier.dispose();
     _resultCtrl.dispose();
+    _scannerCtrl.dispose();
     super.dispose();
   }
 
@@ -285,15 +301,18 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppTheme.bgCream,
+      backgroundColor: isDark ? AppTheme.scaffoldDark : AppTheme.bgCream,
       body: Column(
         children: [
-          _buildHeader(),
+          if (_currentTab == 0) _buildHeader(),
           Expanded(
             child: _currentTab == 0
                 ? _buildHomeTab()
-                : const HistoryScreen(embedded: true),
+                : (_currentTab == 1
+                    ? const LeaderboardScreen()
+                    : const HistoryScreen(embedded: true)),
           ),
           _buildBottomNav(),
         ],
@@ -301,113 +320,116 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── Header ──
+  // ── Header Modern ──
   Widget _buildHeader() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.yellow, AppTheme.yellowDark],
-        ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-        // Menghapus drop shadow header per desain rujukan web HTML
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20,
-              40), // inner padding di bottom ditambah jadi 40 (ruang untuk stats overlapping)
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4))
-                      ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.yellow, AppTheme.yellowDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    child: const Center(
-                        child: Text('🍌', style: TextStyle(fontSize: 22))),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppTheme.yellow.withValues(alpha: 0.4),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4))
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'BanaSnap',
-                    style: GoogleFonts.fredoka(
-                      fontSize: 22,
-                      color: Colors.white,
-                      shadows: [
-                        const Shadow(
-                            color: Color(0x1A000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 2))
-                      ],
+                  child: const Center(
+                      child: Text('🍌', style: TextStyle(fontSize: 22))),
+                ),
+                const SizedBox(width: 14),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'BanaSnap',
+                      style: GoogleFonts.fredoka(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  // Model status indicator
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
+                    Text(
+                      'AI Scanner',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.yellowDark,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                // Model status indicator
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
                       color: _isModelReady
-                          ? Colors.white.withValues(alpha: 0.3)
-                          : Colors.orange.withValues(alpha: 0.3),
+                          ? AppTheme.green.withValues(alpha: 0.15)
+                          : AppTheme.yellow.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: BoxDecoration(
-                            color: _isModelReady ? Colors.white : Colors.orange,
+                      border: Border.all(
+                        color: _isModelReady
+                            ? AppTheme.green.withValues(alpha: 0.3)
+                            : AppTheme.yellow.withValues(alpha: 0.3),
+                      )),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                            color: _isModelReady
+                                ? AppTheme.green
+                                : AppTheme.yellow,
                             shape: BoxShape.circle,
-                          ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (_isModelReady
+                                        ? AppTheme.green
+                                        : AppTheme.yellow)
+                                    .withValues(alpha: 0.5),
+                                blurRadius: 4,
+                              )
+                            ]),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _isModelReady ? 'Ready' : 'Loading',
+                        style: GoogleFonts.nunito(
+                          color: _isModelReady
+                              ? AppTheme.greenDark
+                              : AppTheme.yellowDark,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(width: 5),
-                        Text(
-                          _isModelReady ? 'AI Ready' : 'Loading...',
-                          style: GoogleFonts.nunito(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Cek Pisangmu! 🍌',
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Foto pisang → deteksi dalam 1 detik',
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -415,35 +437,40 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── Home Tab ──
   Widget _buildHomeTab() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stats (ditarik ke atas agar nabrak ke header per HTML design)
+          const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Transform.translate(
-              offset: const Offset(0, -24), // overlap -24px margin in HTML
-              child: StatsWidget(
-                key: ValueKey(_result?.timestamp.millisecondsSinceEpoch ?? 0),
-                db: _db,
-              ),
+            child: StatsWidget(
+              key: ValueKey(_result?.timestamp.millisecondsSinceEpoch ?? 0),
+              db: _db,
             ),
           ),
-
+          const SizedBox(height: 32),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Section title
-                Text('📸 Deteksi Sekarang',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textDark,
-                    )),
-                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Text('📸', style: TextStyle(fontSize: 18)),
+                    const SizedBox(width: 8),
+                    Text('Analisa Pisangmu',
+                        style: GoogleFonts.nunito(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                          letterSpacing: -0.5,
+                        )),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
                 // Image area
                 GestureDetector(
@@ -517,14 +544,14 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('✅ Hasil Deteksi',
+                          const Text('✅ Hasil Analisa AI',
                               style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
                                   color: AppTheme.textDark)),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
                           ResultCard(result: _result!),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 20),
                           Center(
                             child: OutlinedButton.icon(
                               onPressed: _saveToGallery,
@@ -564,42 +591,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildImageArea() {
-    if (_isLoading) {
-      return Container(
-        color: Colors.grey.shade50,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppTheme.yellow.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Center(
-                child: SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(
-                      color: AppTheme.yellowDark, strokeWidth: 3),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text('Menganalisa gambar...',
-                style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyLarge?.color)),
-            const SizedBox(height: 4),
-            const Text('Model AI sedang bekerja',
-                style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
-          ],
-        ),
-      );
-    }
-
     if (_selectedImage != null) {
       return Stack(
         fit: StackFit.expand,
@@ -607,49 +598,94 @@ class _HomeScreenState extends State<HomeScreen>
           kIsWeb
               ? Image.network(_selectedImage!.path, fit: BoxFit.cover)
               : Image.file(_selectedImage!, fit: BoxFit.cover),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.45),
-                    Colors.transparent
+          if (_isLoading)
+            AnimatedBuilder(
+              animation: _scannerCtrl,
+              builder: (context, child) {
+                // Moving from top (0) to bottom (1)
+                return Positioned(
+                  top: _scannerCtrl.value *
+                      250, // Image area height is around 250-300
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.yellow,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.yellow.withValues(alpha: 0.8),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: AppTheme.green.withValues(alpha: 0.5),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            )
+          else ...[
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.45),
+                      Colors.transparent
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 10,
+              right: 12,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.touch_app_rounded,
+                        size: 13, color: AppTheme.textGrey),
+                    SizedBox(width: 4),
+                    Text('Tap untuk ganti',
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textGrey,
+                            fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 10,
-            right: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.touch_app_rounded,
-                      size: 13, color: AppTheme.textGrey),
-                  SizedBox(width: 4),
-                  Text('Tap untuk ganti',
-                      style: TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textGrey,
-                          fontWeight: FontWeight.w700)),
-                ],
-              ),
-            ),
-          ),
+          ]
         ],
+      );
+    }
+
+    if (_isLoading) {
+      // Fallback if somehow loading without an image
+      return Container(
+        color: Colors.grey.shade50,
+        child: const Center(
+          child: CircularProgressIndicator(
+              color: AppTheme.yellowDark, strokeWidth: 3),
+        ),
       );
     }
 
@@ -722,24 +758,48 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildTipsCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFF9E6), Color(0xFFFFF3CC)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.yellow, width: 1.5),
-      ),
+          color: isDark ? AppTheme.cardDark : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+              color: isDark
+                  ? Colors.white12
+                  : AppTheme.yellow.withValues(alpha: 0.3),
+              width: 1.5),
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: AppTheme.yellow.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              )
+          ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('💡 Tips Foto Terbaik',
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.textDark)),
-          const SizedBox(height: 10),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.yellow.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('💡', style: TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(width: 12),
+              Text('Tips Foto Terbaik',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark)),
+            ],
+          ),
+          const SizedBox(height: 16),
           for (final tip in [
             ['📸', 'Pencahayaan cukup & terang'],
             ['🍌', 'Pisang terlihat jelas & penuh'],
@@ -747,16 +807,16 @@ class _HomeScreenState extends State<HomeScreen>
             ['🚫', 'Hindari bayangan pada buah'],
           ])
             Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 children: [
                   Text(tip[0], style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 14),
                   Text(tip[1],
-                      style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textDark)),
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white70 : AppTheme.textGrey)),
                 ],
               ),
             ),
@@ -767,21 +827,22 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── Bottom Nav ──
   Widget _buildBottomNav() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 20,
-              offset: const Offset(0, -4))
-        ],
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        border: Border(
+            top: BorderSide(
+                color: isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.05))),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _NavItem(
                   emoji: '🏠',
@@ -789,10 +850,15 @@ class _HomeScreenState extends State<HomeScreen>
                   active: _currentTab == 0,
                   onTap: () => setState(() => _currentTab = 0)),
               _NavItem(
-                  emoji: '📜',
-                  label: 'Riwayat',
+                  emoji: '🏆',
+                  label: 'Leaderboard',
                   active: _currentTab == 1,
                   onTap: () => setState(() => _currentTab = 1)),
+              _NavItem(
+                  emoji: '📜',
+                  label: 'Riwayat',
+                  active: _currentTab == 2,
+                  onTap: () => setState(() => _currentTab = 2)),
             ],
           ),
         ),
@@ -853,7 +919,7 @@ class _ActionBtn extends StatelessWidget {
     required this.color,
     required this.shadow,
     required this.onTap,
-    this.textColor = Colors.white, // Default is light text on buttons
+    this.textColor,
   });
 
   @override
@@ -864,23 +930,25 @@ class _ActionBtn extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20), // More rounded corners
           boxShadow: [
             if (Theme.of(context).brightness == Brightness.light)
               BoxShadow(
-                  color: shadow, blurRadius: 16, offset: const Offset(0, 4))
+                  color: shadow.withValues(alpha: 0.25),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6))
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 18)),
+            Text(emoji, style: const TextStyle(fontSize: 20)),
             const SizedBox(width: 8),
             Text(label,
-                style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: textColor)),
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: textColor ?? AppTheme.textDark)),
           ],
         ),
       ),
@@ -903,36 +971,49 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 48,
-              height: 48,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              width: active ? 56 : 48,
+              height: 44,
               decoration: BoxDecoration(
                 color: active ? AppTheme.yellow : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: active
-                    ? [
-                        BoxShadow(
-                            color: AppTheme.yellow.withValues(alpha: 0.4),
-                            blurRadius: 12)
-                      ]
-                    : [],
+                boxShadow:
+                    active && Theme.of(context).brightness == Brightness.light
+                        ? [
+                            BoxShadow(
+                                color: AppTheme.yellow.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4))
+                          ]
+                        : [],
               ),
               child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 22))),
+                  child: Text(emoji,
+                      style: TextStyle(
+                        fontSize: active ? 24 : 20,
+                      ))),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: active ? AppTheme.yellowDark : AppTheme.textGrey,
+              style: GoogleFonts.nunito(
+                fontSize: 11,
+                fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                color: active
+                    ? (Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.yellow
+                        : AppTheme.yellowDark)
+                    : AppTheme.textGrey,
               ),
             ),
           ],

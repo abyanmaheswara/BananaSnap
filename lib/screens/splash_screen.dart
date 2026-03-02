@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
+import '../services/firebase_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -43,6 +44,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     Future.delayed(const Duration(milliseconds: 2800), () async {
       if (!mounted) return;
+
+      // Inisialisasi Anonim/Device ID untuk Global Leaderboard Firestore
+      await FirebaseService().initUser();
+
       final prefs = await SharedPreferences.getInstance();
       final hasSeen = prefs.getBool('has_seen_onboarding') ?? false;
       if (mounted) {

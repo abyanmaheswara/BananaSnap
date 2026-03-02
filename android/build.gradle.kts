@@ -3,11 +3,6 @@ allprojects {
         google()
         mavenCentral()
     }
-    
-    // Fix JVM Target Inconsistency antara Java 1.8 dan Kotlin 21 (untuk package lawas)
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
-    }
 }
 
 val newBuildDir: Directory =
@@ -22,6 +17,8 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    
+
     
     // Fix untuk package lawas (tipe AGP 8.0+) yang tidak memiliki namespace
     pluginManager.withPlugin("com.android.library") {
