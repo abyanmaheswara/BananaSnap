@@ -337,16 +337,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.yellow, AppTheme.yellowDark],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                          color: AppTheme.yellow.withValues(alpha: 0.4),
-                          blurRadius: 16,
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 12,
                           offset: const Offset(0, 4))
                     ],
                   ),
